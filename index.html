@@ -383,6 +383,8 @@ body.bt-mode input:focus,body.bt-mode select:focus,body.bt-mode textarea:focus{b
     <div style="margin-bottom:14px;"><label>Contraseña</label><input type="password" id="authPassword" placeholder="••••••••"></div>
     <div style="margin-bottom:14px;display:none;" id="confirmField"><label>Confirmar Contraseña</label><input type="password" id="authConfirm" placeholder="••••••••"></div>
     <button style="width:100%;background:var(--green);border:none;color:#000;font-weight:700;padding:12px;border-radius:8px;font-size:12px;letter-spacing:.08em;margin-top:6px;font-family:var(--font);" id="authBtn" onclick="handleAuth()">ENTRAR</button>
+    <div id="resetLink" style="text-align:center;margin-top:14px;"><button onclick="showResetForm()" style="background:none;border:none;color:var(--mid);font-size:11px;cursor:pointer;font-family:var(--font);">¿Olvidaste tu contraseña?</button></div>
+    <div id="resetForm" style="display:none;margin-top:16px;padding-top:16px;border-top:1px solid var(--border)"><div style="font-size:11px;color:var(--mid);margin-bottom:10px;text-align:center">Ingresa tu email y te enviaremos un link para restablecer tu contraseña</div><div style="margin-bottom:10px"><input type="email" id="resetEmail" placeholder="tu@email.com"></div><button onclick="handleReset()" style="width:100%;background:none;border:1px solid var(--green);color:var(--green);font-weight:600;padding:10px;border-radius:8px;font-size:11px;font-family:var(--font);">ENVIAR LINK</button><div id="resetMsg" style="display:none;text-align:center;font-size:11px;margin-top:10px;padding:8px;border-radius:6px;"></div><button onclick="hideResetForm()" style="width:100%;background:none;border:none;color:var(--mid);font-size:11px;cursor:pointer;margin-top:8px;font-family:var(--font);">Volver al login</button></div>
   </div>
 </div>
 
@@ -500,7 +502,48 @@ function fromDb(r){return{id:r.id,date:r.date,instrument:r.instrument,direction:
 
 // AUTH
 let authMode='login';
-function switchAuthTab(m){authMode=m;document.getElementById('tabLogin').style.cssText=m==='login'?'flex:1;background:var(--card);border:none;color:var(--text);padding:8px;font-size:11px;border-radius:6px;box-shadow:0 1px 4px rgba(0,0,0,.1);':'flex:1;background:none;border:none;color:var(--mid);padding:8px;font-size:11px;border-radius:6px;';document.getElementById('tabRegister').style.cssText=m==='register'?'flex:1;background:var(--card);border:none;color:var(--text);padding:8px;font-size:11px;border-radius:6px;box-shadow:0 1px 4px rgba(0,0,0,.1);':'flex:1;background:none;border:none;color:var(--mid);padding:8px;font-size:11px;border-radius:6px;';document.getElementById('confirmField').style.display=m==='register'?'block':'none';document.getElementById('authBtn').textContent=m==='login'?'ENTRAR':'CREAR CUENTA';document.getElementById('authError').style.display='none';}
+function showResetForm(){
+  document.getElementById('resetForm').style.display='block';
+  document.getElementById('resetLink').style.display='none';
+  var email=document.getElementById('authEmail').value;
+  if(email)document.getElementById('resetEmail').value=email;
+}
+function hideResetForm(){
+  document.getElementById('resetForm').style.display='none';
+  document.getElementById('resetLink').style.display='block';
+  document.getElementById('resetMsg').style.display='none';
+}
+async function handleReset(){
+  var email=document.getElementById('resetEmail').value.trim();
+  if(!email){showResetMsg('Ingresa tu email','var(--red)');return;}
+  var msgEl=document.getElementById('resetMsg');
+  msgEl.style.display='none';
+  try{
+    var res=await fetch(SB_URL+'/auth/v1/recover',{
+      method:'POST',
+      headers:{'Content-Type':'application/json','apikey':SB_KEY},
+      body:JSON.stringify({email:email})
+    });
+    if(res.ok){
+      showResetMsg('\u2713 Email enviado. Revisa tu bandeja de entrada.','var(--green)');
+    } else {
+      var data=await res.json();
+      showResetMsg(data.msg||'Error al enviar','var(--red)');
+    }
+  }catch(e){
+    showResetMsg('Error de conexi\xF3n','var(--red)');
+  }
+}
+function showResetMsg(msg,color){
+  var el=document.getElementById('resetMsg');
+  el.textContent=msg;
+  el.style.background=color==='var(--green)'?'var(--green-dim)':'var(--red-dim)';
+  el.style.color=color;
+  el.style.border='1px solid '+color;
+  el.style.display='block';
+}
+
+function switchAuthTab(m){authMode=m;hideResetForm();document.getElementById('tabLogin').style.cssText=m==='login'?'flex:1;background:var(--card);border:none;color:var(--text);padding:8px;font-size:11px;border-radius:6px;box-shadow:0 1px 4px rgba(0,0,0,.1);':'flex:1;background:none;border:none;color:var(--mid);padding:8px;font-size:11px;border-radius:6px;';document.getElementById('tabRegister').style.cssText=m==='register'?'flex:1;background:var(--card);border:none;color:var(--text);padding:8px;font-size:11px;border-radius:6px;box-shadow:0 1px 4px rgba(0,0,0,.1);':'flex:1;background:none;border:none;color:var(--mid);padding:8px;font-size:11px;border-radius:6px;';document.getElementById('confirmField').style.display=m==='register'?'block':'none';document.getElementById('authBtn').textContent=m==='login'?'ENTRAR':'CREAR CUENTA';document.getElementById('authError').style.display='none';}
 async function handleAuth(){const email=document.getElementById('authEmail').value.trim();const password=document.getElementById('authPassword').value;const confirm=document.getElementById('authConfirm').value;const btn=document.getElementById('authBtn');if(!email||!password){showAuthError('Ingresa email y contraseña');return;}if(authMode==='register'&&password!==confirm){showAuthError('Las contraseñas no coinciden');return;}if(password.length<6){showAuthError('Mínimo 6 caracteres');return;}btn.disabled=true;btn.textContent='Cargando...';document.getElementById('authError').style.display='none';try{const ep=authMode==='login'?'token?grant_type=password':'signup';const res=await fetch(SB_URL+'/auth/v1/'+ep,{method:'POST',headers:{'Content-Type':'application/json','apikey':SB_KEY},body:JSON.stringify({email,password})});const data=await res.json();if(!res.ok)throw new Error(data.error_description||data.msg||'Error');if(authMode==='register'&&!data.access_token){showAuthError('✓ Revisa tu email para confirmar');btn.disabled=false;btn.textContent='CREAR CUENTA';return;}currentUser=data.user;setAuthToken(data.access_token);document.getElementById('authScreen').style.display='none';await loadAndRender();updateUserNav();}catch(e){showAuthError(e.message);btn.disabled=false;btn.textContent=authMode==='login'?'ENTRAR':'CREAR CUENTA';}}
 function showAuthError(msg){const el=document.getElementById('authError');el.textContent=msg;el.style.display='block';}
 async function logout(){try{await fetch(SB_URL+'/auth/v1/logout',{method:'POST',headers:HEADERS});}catch(_){}currentUser=null;setAuthToken(null);trades=[];localStorage.removeItem('tradelog-session');document.getElementById('authScreen').style.display='flex';document.getElementById('authEmail').value='';document.getElementById('authPassword').value='';}
