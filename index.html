@@ -162,8 +162,11 @@ tr:hover td{background:var(--bg);}
 @media(max-width:700px){
   .dash-hero-metrics{grid-template-columns:1fr 1fr;gap:0;row-gap:0;}
   .dash-hero-divider{display:none;}
-  .dash-hero-pnl,.dash-hero-cell,.dash-hero-last{padding:14px 16px!important;border-bottom:1px solid var(--border);text-align:left!important;}
-  .dash-hero-pnl > div:first-child,.dash-hero-cell > div:first-child,.dash-hero-last > div:first-child{font-size:9px!important;}
+  .dash-hero-pnl{grid-column:1/-1!important;text-align:center!important;border-bottom:1px solid var(--border)!important;padding:22px 16px!important;}
+  .dash-hero-cell,.dash-hero-last{padding:14px 16px!important;text-align:center!important;border-bottom:1px solid var(--border);}
+  /* left column cells get a right border to separate columns */
+  .dash-hero-cell:nth-child(3),.dash-hero-cell:nth-child(5){border-right:1px solid var(--border);}
+  .dash-hero-last{border-bottom:none!important;}
   .dash-sec-row{grid-template-columns:repeat(2,1fr);}
 }
 
