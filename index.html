@@ -578,15 +578,29 @@ function renderDashboard(){
 
   var now=new Date();
   var targetDate=new Date(now.getFullYear(),now.getMonth()+dashMonthOffset,1);
+  var monthTrs=trs.filter(function(t){var d=new Date(t.date);return d.getMonth()===targetDate.getMonth()&&d.getFullYear()===targetDate.getFullYear();});
+  var monthWins=monthTrs.filter(function(t){return t.pnlNet>0;});
+  var monthLosses=monthTrs.filter(function(t){return t.pnlNet<=0;});
+  var monthPnlTotal=monthTrs.reduce(function(s,t){return s+t.pnlNet;},0);
+  var monthWr=monthTrs.length?monthWins.length/monthTrs.length*100:0;
+  var monthAvgW=monthWins.length?monthWins.reduce(function(s,t){return s+t.pnlNet;},0)/monthWins.length:0;
+  var monthAvgL=monthLosses.length?monthLosses.reduce(function(s,t){return s+t.pnlNet;},0)/monthLosses.length:0;
+  var monthGrossW=monthWins.reduce(function(s,t){return s+(t.pnlGross||0);},0);
+  var monthGrossL=Math.abs(monthLosses.reduce(function(s,t){return s+(t.pnlGross||0);},0));
+  var monthPf=monthGrossL>0?monthGrossW/monthGrossL:99;
+  var monthRr=monthWins.length&&monthLosses.length?(monthAvgW/Math.abs(monthAvgL)):null;
+  var monthByInst={};monthTrs.forEach(function(t){if(!monthByInst[t.instrument])monthByInst[t.instrument]={pnl:0,count:0,wins:0};monthByInst[t.instrument].pnl+=t.pnlNet;monthByInst[t.instrument].count++;if(t.pnlNet>0)monthByInst[t.instrument].wins++;});
+  var monthBestInst=Object.entries(monthByInst).sort(function(a,b){return b[1].pnl-a[1].pnl;})[0];
+  var monthBestWR=monthBestInst?(monthBestInst[1].wins/monthBestInst[1].count*100).toFixed(0)+'%':'-';
   var meses=['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
   var mesActual=meses[targetDate.getMonth()]+' '+targetDate.getFullYear();
   var isPos=total>=0;
   var pnlCol=isPos?'var(--green)':'var(--red)';
 
   // ── STATUS CHIP ──────────────────────────────────────────
-  var statusText=wr>=65?'Excelente':wr>=50?'Positivo':'A mejorar';
-  var statusCol=wr>=65?'var(--green)':wr>=50?'var(--amber)':'var(--red)';
-  var statusBg=wr>=65?'rgba(0,184,122,.12)':wr>=50?'rgba(224,140,0,.12)':'rgba(230,48,80,.12)';
+  var statusText=monthTrs.length===0?'Sin trades':monthWr>=65?'Excelente':monthWr>=50?'Positivo':'A mejorar';
+  var statusCol=monthTrs.length===0?'var(--mid)':monthWr>=65?'var(--green)':monthWr>=50?'var(--amber)':'var(--red)';
+  var statusBg=monthTrs.length===0?'rgba(148,163,184,.12)':monthWr>=65?'rgba(0,184,122,.12)':monthWr>=50?'rgba(224,140,0,.12)':'rgba(230,48,80,.12)';
 
   // ── HERO BANNER — protagonista absoluto ──────────────────
   var hero='<div style="background:var(--card);border:1px solid var(--border);border-radius:20px;padding:28px 32px;margin-bottom:20px;box-shadow:0 1px 6px rgba(0,0,0,.05)">'
