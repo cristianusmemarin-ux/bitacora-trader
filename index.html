@@ -49,7 +49,6 @@ nav{background:var(--nav-bg);border-bottom:1px solid var(--border);box-shadow:0 
 .tab{background:none;border:none;color:var(--mid);padding:16px;font-size:12px;border-bottom:2px solid transparent;transition:all .2s;}
 .tab.active{color:var(--text);border-bottom-color:var(--green);}
 .nav-right{margin-left:auto;display:flex;align-items:center;gap:10px;}
-.btn-demo{background:var(--green-dim);border:1px solid var(--green);color:var(--green);padding:6px 14px;border-radius:6px;font-size:10px;}
 .sync-dot{width:7px;height:7px;border-radius:50%;background:var(--dim);}
 .sync-dot.online{background:var(--green);box-shadow:0 0 8px var(--green);animation:pulse 2s infinite;}
 .btn-theme{background:none;border:1px solid var(--border2);color:var(--mid);padding:6px 10px;border-radius:6px;font-size:14px;line-height:1;}
@@ -302,8 +301,6 @@ body.bt-mode input:focus,body.bt-mode select:focus,body.bt-mode textarea:focus{b
         <button onclick="exportExcel()" class="settings-item"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg> Exportar CSV</button>
         <button onclick="downloadTemplate()" class="settings-item"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg> Descargar plantilla</button>
         <div class="settings-sep"></div>
-        <button onclick="loadDemo()" class="settings-item" style="color:var(--green)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg> Cargar Demo</button>
-        <button onclick="deleteDemo()" class="settings-item" style="color:var(--red)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg> Borrar Demo</button>
         <div class="settings-sep"></div>
         <button onclick="logout()" class="settings-item"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg> Cerrar sesión</button>
       </div>
@@ -338,8 +335,6 @@ body.bt-mode input:focus,body.bt-mode select:focus,body.bt-mode textarea:focus{b
         <button onclick="exportExcel();closeMobileMenu()" class="settings-item"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg> Exportar CSV</button>
         <button onclick="downloadTemplate();closeMobileMenu()" class="settings-item"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg> Descargar plantilla</button>
         <div class="settings-sep"></div>
-        <button onclick="loadDemo();closeMobileMenu()" class="settings-item" style="color:var(--green)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg> Cargar Demo</button>
-        <button onclick="deleteDemo();closeMobileMenu()" class="settings-item" style="color:var(--red)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg> Borrar Demo</button>
         <div class="settings-sep"></div>
         <button onclick="logout()" class="settings-item"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg> Cerrar sesión</button>
       </div>
@@ -553,7 +548,7 @@ function render(){
 function renderDashboard(){
   var trs=currentTrades();
   var modeL=modeLabel();
-  if(!trs.length)return'<div class="empty" style="margin-top:60px"><div style="margin-bottom:10px">'+modeL+'</div><div class="empty-icon">&#x1F4C8;</div><div class="empty-title">Sin trades en este modo</div><div class="empty-sub">Presiona <b style="color:'+modeAccent()+'">+ Nuevo</b> o carga datos <b style="color:var(--amber)">DEMO</b></div></div>';
+  if(!trs.length)return'<div class="empty" style="margin-top:60px"><div style="margin-bottom:10px">'+modeL+'</div><div class="empty-icon">&#x1F4C8;</div><div class="empty-title">Sin trades en este modo</div><div class="empty-sub">Presiona <b style="color:'+modeAccent()+'">+ Nuevo</b></div></div>';
 
   var wins=trs.filter(function(t){return t.pnlNet>0;}),losses=trs.filter(function(t){return t.pnlNet<=0;});
   var total=trs.reduce(function(s,t){return s+t.pnlNet;},0);
@@ -1140,8 +1135,6 @@ function renderCRTSetups(){
 }
 
 // ─── DEMO ──────────────────────────────────────────────────────
-async function loadDemo(){if(!confirm('¿Cargar ~30 trades de ejemplo en modo '+currentMode+'?'))return;const demo=genDemo(30);try{for(const t of demo){const[s]=await insertTrade(t);trades=[fromDb(s),...trades];}setSync(true,trades.length+' trades');showToast('Demo cargado ✓');render();}catch(e){alert('Error: '+e.message);}}
-async function deleteDemo(){const demoTrades=trades.filter(t=>t.source==='demo'&&t.mode===currentMode);if(!demoTrades.length){showToast('No hay trades demo en este modo');return;}if(!confirm('¿Eliminar los '+demoTrades.length+' trades de demo en modo '+currentMode+'?'))return;try{for(const t of demoTrades)await deleteTrade(t.id);trades=trades.filter(t=>!(t.source==='demo'&&t.mode===currentMode));setSync(true,trades.length+' trades');showToast(demoTrades.length+' trades demo eliminados ✓');render();}catch(e){alert('Error: '+e.message);}}
 function genDemo(n){
   const result=[],insts=['MES','MNQ','6E','6B','EURUSD'];let date=new Date('2025-10-01T09:30:00');
   for(let i=0;i<n;i++){
