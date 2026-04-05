@@ -309,6 +309,20 @@ body.bt-mode input:focus,body.bt-mode select:focus,body.bt-mode textarea:focus{b
 </nav>
 <input type="file" id="excelFileInput" accept=".xlsx,.xls,.csv" style="display:none" onchange="handleExcelFile(this)">
 
+<!-- RECOVERY SCREEN -->
+<div id="recoveryScreen" style="display:none;position:fixed;inset:0;background:var(--bg);align-items:center;justify-content:center;z-index:200;padding:20px;">
+  <div style="background:var(--card);border:1px solid var(--border);border-radius:16px;padding:36px 32px;width:100%;max-width:380px;box-shadow:0 8px 40px rgba(0,0,0,.12);">
+    <div style="text-align:center;margin-bottom:24px">
+      <svg width="40" height="40" viewBox="0 0 44 44" xmlns="http://www.w3.org/2000/svg" style="display:block;margin:0 auto 12px"><polygon points="22,1 43,22 22,43 1,22" fill="#0a0f1e"/><polygon points="22,1 43,22 22,43" fill="#00b87a"/><polyline points="7,31 14,22 23,26 33,11" fill="none" stroke="#ffffff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/><circle cx="33" cy="11" r="3" fill="#ffffff"/></svg>
+      <div style="font-family:var(--display);font-weight:800;font-size:22px;color:var(--logo-color)">bitácora<span style="color:var(--green)">trader</span></div>
+      <div style="font-size:12px;color:var(--mid);margin-top:6px">Nueva contraseña</div>
+    </div>
+    <div id="recoveryError" style="background:var(--red-dim);border:1px solid var(--red);color:var(--red);padding:8px 12px;border-radius:6px;font-size:11px;margin-bottom:12px;display:none;"></div>
+    <div style="margin-bottom:14px"><label>Nueva contraseña</label><input type="password" id="newPassword" placeholder="Mínimo 6 caracteres"></div>
+    <div style="margin-bottom:20px"><label>Confirmar contraseña</label><input type="password" id="newPasswordConfirm" placeholder="Repite la contraseña"></div>
+    <button onclick="handleNewPassword()" style="width:100%;background:var(--green);border:none;color:#000;font-weight:700;padding:12px;border-radius:8px;font-size:12px;letter-spacing:.08em;font-family:var(--font);">GUARDAR CONTRASEÑA</button>
+  </div>
+</div>
 
 <!-- MOBILE TOP BAR -->
 <div class="top-bar">
@@ -559,7 +573,7 @@ function updateUserNav(){if(currentUser){
     if(nameEl)nameEl.textContent=parts[0]?parts[0].charAt(0).toUpperCase()+parts[0].slice(1):email;
   }}
 async function fetchWithTimeout(url,opts={},ms=6000){const ctrl=new AbortController();const id=setTimeout(()=>ctrl.abort(),ms);try{const r=await fetch(url,{...opts,signal:ctrl.signal});clearTimeout(id);return r;}catch(e){clearTimeout(id);throw e;}}
-async function init(){try{const saved=localStorage.getItem('tradelog-session');if(saved){const s=JSON.parse(saved);const res=await fetchWithTimeout(SB_URL+'/auth/v1/user',{headers:{'apikey':SB_KEY,'Authorization':'Bearer '+s.access_token}},6000);if(res.ok){currentUser=await res.json();setAuthToken(s.access_token);document.getElementById('authScreen').style.display='none';await loadAndRender();updateUserNav();return;}}}catch(_){}document.getElementById('loading').style.display='none';document.getElementById('authScreen').style.display='flex';}
+async function init(){if(checkRecoveryToken())return;try{const saved=localStorage.getItem('tradelog-session');if(saved){const s=JSON.parse(saved);const res=await fetchWithTimeout(SB_URL+'/auth/v1/user',{headers:{'apikey':SB_KEY,'Authorization':'Bearer '+s.access_token}},6000);if(res.ok){currentUser=await res.json();setAuthToken(s.access_token);document.getElementById('authScreen').style.display='none';await loadAndRender();updateUserNav();return;}}}catch(_){}document.getElementById('loading').style.display='none';document.getElementById('authScreen').style.display='flex';}
 async function loadAndRender(){try{const data=await loadTrades();trades=data.map(fromDb);setSync(true,trades.length+' trades');localStorage.setItem('tradelog-session',JSON.stringify({access_token:currentToken}));const sc=localStorage.getItem('gfx-crt');if(sc)crtData=JSON.parse(sc);}catch(e){setSync(false,'Sin conexión');}document.getElementById('loading').style.display='none';render();}
 function setSync(on,label){const cls='sync-dot'+(on?' online':'');const d=document.getElementById('syncDot');if(d)d.className=cls;const dm=document.getElementById('syncDotM');if(dm)dm.className=cls;const sl=document.getElementById('syncLabel');if(sl)sl.textContent=label;}
 function showToast(msg,color){const t=document.getElementById('toast');t.textContent=msg;t.style.background=color||'var(--green)';t.style.display='block';setTimeout(()=>t.style.display='none',2500);}
@@ -1724,6 +1738,80 @@ async function confirmImport(trades){
 
 function toggleSettingsMenu(){/* menu is now hover-based, no action needed */}
 
+
+// ── PASSWORD RECOVERY ─────────────────────────────────────────
+var recoveryToken=null;
+
+function checkRecoveryToken(){
+  var hash=window.location.hash;
+  if(!hash)return false;
+  var params={};
+  hash.replace('#','').split('&').forEach(function(p){
+    var parts=p.split('=');
+    params[parts[0]]=decodeURIComponent(parts[1]||'');
+  });
+  if(params.type==='recovery'&&params.access_token){
+    recoveryToken=params.access_token;
+    // Clear hash from URL
+    history.replaceState(null,'',window.location.pathname);
+    // Show recovery screen
+    document.getElementById('loading').style.display='none';
+    document.getElementById('authScreen').style.display='none';
+    var rs=document.getElementById('recoveryScreen');
+    rs.style.display='flex';
+    return true;
+  }
+  return false;
+}
+
+async function handleNewPassword(){
+  var pwd=document.getElementById('newPassword').value;
+  var confirm=document.getElementById('newPasswordConfirm').value;
+  var errEl=document.getElementById('recoveryError');
+  errEl.style.display='none';
+
+  if(!pwd||pwd.length<6){
+    errEl.textContent='Mínimo 6 caracteres';
+    errEl.style.display='block';
+    return;
+  }
+  if(pwd!==confirm){
+    errEl.textContent='Las contraseñas no coinciden';
+    errEl.style.display='block';
+    return;
+  }
+
+  try{
+    var res=await fetch(SB_URL+'/auth/v1/user',{
+      method:'PUT',
+      headers:{
+        'Content-Type':'application/json',
+        'apikey':SB_KEY,
+        'Authorization':'Bearer '+recoveryToken
+      },
+      body:JSON.stringify({password:pwd})
+    });
+    if(res.ok){
+      document.getElementById('recoveryScreen').style.display='none';
+      document.getElementById('authScreen').style.display='flex';
+      // Show success message in auth screen
+      var authErr=document.getElementById('authError');
+      authErr.textContent='✓ Contraseña actualizada. Inicia sesión.';
+      authErr.style.background='var(--green-dim)';
+      authErr.style.borderColor='var(--green)';
+      authErr.style.color='var(--green)';
+      authErr.style.display='block';
+      recoveryToken=null;
+    } else {
+      var data=await res.json();
+      errEl.textContent=data.msg||'Error al actualizar';
+      errEl.style.display='block';
+    }
+  }catch(e){
+    errEl.textContent='Error de conexión';
+    errEl.style.display='block';
+  }
+}
 
 function toLocalISO(d){
   if(!d||isNaN(d.getTime()))return new Date().toISOString();
