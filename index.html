@@ -297,7 +297,7 @@ body.bt-mode input:focus,body.bt-mode select:focus,body.bt-mode textarea:focus{b
         <span></span><span></span><span></span>
       </button>
       <div class="settings-flyout" id="settingsMenu">
-        <div id="settingsUserEmail" class="settings-email"></div>
+        <div style="display:flex;align-items:center;gap:10px;padding:10px 12px;border-bottom:0.5px solid var(--border);margin-bottom:6px"><div id="settingsAvatar" style="width:36px;height:36px;border-radius:50%;background:var(--blue);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700;color:#fff;flex-shrink:0">?</div><div><div id="settingsUserName" style="font-size:12px;font-weight:600;color:var(--text)"></div><div id="settingsUserEmail" style="font-size:10px;color:var(--mid);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:160px"></div></div></div>
         <button onclick="importExcel()" class="settings-item"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg> Importar Excel</button>
         <button onclick="exportExcel()" class="settings-item"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg> Exportar CSV</button>
         <button onclick="downloadTemplate()" class="settings-item"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg> Descargar plantilla</button>
@@ -353,10 +353,10 @@ body.bt-mode input:focus,body.bt-mode select:focus,body.bt-mode textarea:focus{b
 <div class="bottom-nav">
   <div class="bottom-nav-inner">
     <button class="bnav-btn active" id="bnav-dashboard" onclick="showView('dashboard')">
-      <span class="bnav-icon">&#x1F4CA;</span>Dashboard
+      <span class="bnav-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg></span>Dashboard
     </button>
     <button class="bnav-btn" id="bnav-log" onclick="showView('log')">
-      <span class="bnav-icon">&#x1F4CB;</span>Trades
+      <span class="bnav-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg></span>Trades
     </button>
     <button class="bnav-btn" id="bnav-new" onclick="showView('new')" style="color:var(--green)">
       <span class="bnav-icon" style="background:var(--green);color:#000;border-radius:50%;width:32px;height:32px;display:flex;align-items:center;justify-content:center;font-size:20px;margin-bottom:2px">+</span>Nuevo
@@ -365,7 +365,7 @@ body.bt-mode input:focus,body.bt-mode select:focus,body.bt-mode textarea:focus{b
       <span class="bnav-icon">&#x1F3AF;</span>CRT
     </button>
     <button class="bnav-btn" id="bnav-crtsetups" onclick="showView('crtsetups')">
-      <span class="bnav-icon">&#x1F4C8;</span>Setups
+      <span class="bnav-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg></span>Setups
     </button>
   </div>
 </div>
@@ -509,7 +509,17 @@ function switchAuthTab(m){authMode=m;document.getElementById('tabLogin').style.c
 async function handleAuth(){const email=document.getElementById('authEmail').value.trim();const password=document.getElementById('authPassword').value;const confirm=document.getElementById('authConfirm').value;const btn=document.getElementById('authBtn');if(!email||!password){showAuthError('Ingresa email y contraseña');return;}if(authMode==='register'&&password!==confirm){showAuthError('Las contraseñas no coinciden');return;}if(password.length<6){showAuthError('Mínimo 6 caracteres');return;}btn.disabled=true;btn.textContent='Cargando...';document.getElementById('authError').style.display='none';try{const ep=authMode==='login'?'token?grant_type=password':'signup';const res=await fetch(SB_URL+'/auth/v1/'+ep,{method:'POST',headers:{'Content-Type':'application/json','apikey':SB_KEY},body:JSON.stringify({email,password})});const data=await res.json();if(!res.ok)throw new Error(data.error_description||data.msg||'Error');if(authMode==='register'&&!data.access_token){showAuthError('✓ Revisa tu email para confirmar');btn.disabled=false;btn.textContent='CREAR CUENTA';return;}currentUser=data.user;setAuthToken(data.access_token);document.getElementById('authScreen').style.display='none';await loadAndRender();updateUserNav();}catch(e){showAuthError(e.message);btn.disabled=false;btn.textContent=authMode==='login'?'ENTRAR':'CREAR CUENTA';}}
 function showAuthError(msg){const el=document.getElementById('authError');el.textContent=msg;el.style.display='block';}
 async function logout(){try{await fetch(SB_URL+'/auth/v1/logout',{method:'POST',headers:HEADERS});}catch(_){}currentUser=null;setAuthToken(null);trades=[];localStorage.removeItem('tradelog-session');document.getElementById('authScreen').style.display='flex';document.getElementById('authEmail').value='';document.getElementById('authPassword').value='';}
-function updateUserNav(){if(currentUser){const emailEl=document.getElementById('settingsUserEmail');if(emailEl)emailEl.textContent=currentUser.email;const emailElM=document.getElementById('mobileSettingsEmail');if(emailElM)emailElM.textContent=currentUser.email;}}
+function updateUserNav(){if(currentUser){
+    const emailEl=document.getElementById('settingsUserEmail');
+    if(emailEl)emailEl.textContent=currentUser.email;
+    const nameEl=document.getElementById('settingsUserName');
+    const avatarEl=document.getElementById('settingsAvatar');
+    const email=currentUser.email||'';
+    const parts=email.split('@')[0].split(/[.\-_]/);
+    const initials=(parts[0]?parts[0][0]:'?')+(parts[1]?parts[1][0]:parts[0]&&parts[0].length>1?parts[0][1]:'');
+    if(avatarEl)avatarEl.textContent=initials.toUpperCase();
+    if(nameEl)nameEl.textContent=parts[0]?parts[0].charAt(0).toUpperCase()+parts[0].slice(1):email;
+  }}
 async function fetchWithTimeout(url,opts={},ms=6000){const ctrl=new AbortController();const id=setTimeout(()=>ctrl.abort(),ms);try{const r=await fetch(url,{...opts,signal:ctrl.signal});clearTimeout(id);return r;}catch(e){clearTimeout(id);throw e;}}
 async function init(){try{const saved=localStorage.getItem('tradelog-session');if(saved){const s=JSON.parse(saved);const res=await fetchWithTimeout(SB_URL+'/auth/v1/user',{headers:{'apikey':SB_KEY,'Authorization':'Bearer '+s.access_token}},6000);if(res.ok){currentUser=await res.json();setAuthToken(s.access_token);document.getElementById('authScreen').style.display='none';await loadAndRender();updateUserNav();return;}}}catch(_){}document.getElementById('loading').style.display='none';document.getElementById('authScreen').style.display='flex';}
 async function loadAndRender(){try{const data=await loadTrades();trades=data.map(fromDb);setSync(true,trades.length+' trades');localStorage.setItem('tradelog-session',JSON.stringify({access_token:currentToken}));const sc=localStorage.getItem('gfx-crt');if(sc)crtData=JSON.parse(sc);}catch(e){setSync(false,'Sin conexión');}document.getElementById('loading').style.display='none';render();}
@@ -567,8 +577,9 @@ function renderDashboard(){
   var bestWR=bestInst?(bestInst[1].wins/bestInst[1].count*100).toFixed(0)+'%':'-';
 
   var now=new Date();
+  var targetDate=new Date(now.getFullYear(),now.getMonth()+dashMonthOffset,1);
   var meses=['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
-  var mesActual=meses[now.getMonth()]+' '+now.getFullYear();
+  var mesActual=meses[targetDate.getMonth()]+' '+targetDate.getFullYear();
   var isPos=total>=0;
   var pnlCol=isPos?'var(--green)':'var(--red)';
 
@@ -581,7 +592,12 @@ function renderDashboard(){
   var hero='<div style="background:var(--card);border:1px solid var(--border);border-radius:20px;padding:28px 32px;margin-bottom:20px;box-shadow:0 1px 6px rgba(0,0,0,.05)">'
     // Top row: mes + status chip
     +'<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:24px">'
-    +'<div style="font-size:11px;font-weight:600;color:var(--mid);letter-spacing:.1em;text-transform:uppercase">'+mesActual+'</div>'
+
+    +'<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:24px">'
+    +'<button onclick="changeDashMonth(-1)" style="width:28px;height:28px;border-radius:8px;border:0.5px solid var(--border2);background:none;cursor:pointer;color:var(--mid);font-size:18px;line-height:1">‹</button>'
+    +'<span style="font-size:11px;font-weight:600;color:var(--mid);letter-spacing:.1em;text-transform:uppercase">'+ mesActual +'</span>'
+    +'<button onclick="changeDashMonth(1)" style="width:28px;height:28px;border-radius:8px;border:0.5px solid var(--border2);background:none;cursor:pointer;color:var(--mid);font-size:18px;line-height:1">›</button>'
+    +'</div>'
     +'<div style="display:flex;align-items:center;gap:6px;padding:5px 14px;border-radius:20px;background:'+statusBg+';border:1px solid '+statusCol+'">'
     +'<div style="width:6px;height:6px;border-radius:50%;background:'+statusCol+'"></div>'
     +'<span style="font-size:11px;font-weight:600;color:'+statusCol+'">'+statusText+'</span>'
@@ -629,11 +645,22 @@ function renderDashboard(){
 
   // ── KPIs SECUNDARIOS — fila limpia ───────────────────────
   var ic=function(paths,w,h){return'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="'+w+'" stroke-linecap="round" stroke-linejoin="round" width="'+h+'" height="'+h+'">'+paths+'</svg>';};
+  // Build sparklines from trade history
+  function makeSpark(vals,col){
+    if(!vals.length)return '';
+    var mn=Math.min.apply(null,vals),mx=Math.max.apply(null,vals);
+    var range=mx-mn||1;
+    var pts=vals.map(function(v,i){return (i/(vals.length-1||1)*76)+','+((1-(v-mn)/range)*20);}).join(' ');
+    return '<svg viewBox="0 0 80 24" width="100%" height="20" preserveAspectRatio="none"><polyline points="'+pts+'" fill="none" stroke="'+col+'" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+  }
+  var winVals=wins.map(function(t){return t.pnlNet;});
+  var lossVals=losses.map(function(t){return t.pnlNet;});
+  var expVals=trs.map(function(t){return t.pnlNet;});
   var secKpis=[
-    {l:'Avg Win',v:fmt(avgW),s:'Mejor: '+fmt(Math.max.apply(null,[0].concat(wins.map(function(t){return t.pnlNet;})))),c:'var(--green)',ic:'#00b87a',ibg:'rgba(0,184,122,.1)',svg:ic('<polyline points="18 15 12 9 6 15"/>',2.5,16)},
-    {l:'Avg Loss',v:fmt(avgL),s:'Peor: '+fmt(Math.min.apply(null,[0].concat(losses.map(function(t){return t.pnlNet;})))),c:'var(--red)',ic:'#e63050',ibg:'rgba(230,48,80,.1)',svg:ic('<polyline points="6 9 12 15 18 9"/>',2.5,16)},
+    {l:'Avg Win',v:fmt(avgW),s:'Mejor: '+fmt(Math.max.apply(null,[0].concat(wins.map(function(t){return t.pnlNet;})))),c:'var(--green)',ic:'#00b87a',ibg:'rgba(0,184,122,.1)',svg:ic('<polyline points="18 15 12 9 6 15"/>',2.5,16),spark:makeSpark(winVals,'#00b87a')},
+    {l:'Avg Loss',v:fmt(avgL),s:'Peor: '+fmt(Math.min.apply(null,[0].concat(losses.map(function(t){return t.pnlNet;})))),c:'var(--red)',ic:'#e63050',ibg:'rgba(230,48,80,.1)',svg:ic('<polyline points="6 9 12 15 18 9"/>',2.5,16),spark:makeSpark(lossVals,'#e63050')},
     {l:'Racha Actual',v:streak>0?'+'+streak+'W':streak<0?streak+'L':'0',s:'consecutivos',c:streak>0?'var(--green)':streak<0?'var(--red)':'var(--mid)',ic:streak>0?'#00b87a':streak<0?'#e63050':'#94a3b8',ibg:streak>0?'rgba(0,184,122,.1)':streak<0?'rgba(230,48,80,.1)':'rgba(148,163,184,.1)',svg:ic('<polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>',2,16)},
-    {l:'Expectativa',v:function(){var e=(wr/100*avgW)-((1-wr/100)*Math.abs(avgL));return(e>=0?'+':'')+e.toFixed(0);}(),s:'por trade promedio',c:function(){var e=(wr/100*avgW)-((1-wr/100)*Math.abs(avgL));return e>=0?'var(--green)':'var(--red)';}(),ic:function(){var e=(wr/100*avgW)-((1-wr/100)*Math.abs(avgL));return e>=0?'#00b87a':'#e63050';}(),ibg:function(){var e=(wr/100*avgW)-((1-wr/100)*Math.abs(avgL));return e>=0?'rgba(0,184,122,.1)':'rgba(230,48,80,.1)';}(),svg:ic('<line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/>',2,16)},
+    {l:'Expectativa',v:function(){var e=(wr/100*avgW)-((1-wr/100)*Math.abs(avgL));return(e>=0?'+':'')+e.toFixed(0);}(),s:'por trade promedio',spark:makeSpark(expVals,'#00b87a'),c:function(){var e=(wr/100*avgW)-((1-wr/100)*Math.abs(avgL));return e>=0?'var(--green)':'var(--red)';}(),ic:function(){var e=(wr/100*avgW)-((1-wr/100)*Math.abs(avgL));return e>=0?'#00b87a':'#e63050';}(),ibg:function(){var e=(wr/100*avgW)-((1-wr/100)*Math.abs(avgL));return e>=0?'rgba(0,184,122,.1)':'rgba(230,48,80,.1)';}(),svg:ic('<line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/>',2,16)},
     {l:'DD M\xE1ximo',v:function(){var peak=0,maxDD=0;trs.forEach(function(t){var cum=0;trs.slice(0,trs.indexOf(t)+1).forEach(function(x){cum+=x.pnlNet;});if(cum>peak)peak=cum;var dd=peak-cum;if(dd>maxDD)maxDD=dd;});return maxDD>0?'-$'+maxDD.toFixed(0):'\u2014';}(),s:'desde el pico',c:'var(--red)',ic:'#e63050',ibg:'rgba(230,48,80,.1)',svg:ic('<polyline points="6 9 12 15 18 9"/>',2.5,16)},
   ];
   var secRow='<div class="dash-sec-row">'
@@ -644,7 +671,8 @@ function renderDashboard(){
         +'<span style="font-size:10px;color:var(--mid);letter-spacing:.04em">'+k.l+'</span>'
         +'</div>'
         +'<div style="font-family:-apple-system,sans-serif;font-size:24px;font-weight:700;color:'+k.c+';line-height:1;letter-spacing:-.01em;margin-bottom:5px">'+k.v+'</div>'
-        +'<div style="font-size:10px;color:var(--dim)">'+k.s+'</div>'
+        +'<div style="font-size:10px;color:var(--dim);margin-bottom:'+(k.spark?'6px':'0')+'">'+k.s+'</div>'
+        +(k.spark||'')
         +'</div>';
     }).join('')
     +'</div>';
@@ -744,7 +772,9 @@ function renderLog(){
     const crtM=(t.note||'').match(/\[CRT:([^\]]+)\]/);
     const crtBadges=crtM?crtM[1].split(',').map(function(r){var p=r.split(':');if(!p[0]||!p[1])return'';var col=p[1]==='activo'?'var(--green)':p[1]==='vivo'?'var(--amber)':'var(--purple)';return'<span style="display:inline-block;margin:1px;padding:2px 5px;border-radius:4px;font-size:8px;font-weight:600;border:1px solid '+col+';color:'+col+'">'+p[0]+'</span>';}).join(''):'';
     const kl=(t.keyLevel&&t.keyLevel!=='\u2014')?'<span style="background:rgba(45,125,210,.1);border:1px solid var(--blue);border-radius:4px;padding:2px 6px;font-size:9px;color:var(--blue)">'+t.keyLevel+'</span>':'<span style="color:var(--dim)">&#x2014;</span>';
-    return '<tr style="cursor:pointer" onclick="openTradeModal(\''+t.id+'\')"><td style="color:var(--mid);font-size:10px">'+dt+'</td>'
+    var rowBg=t.pnlNet>=0?'rgba(0,184,122,.05)':'rgba(230,48,80,.05)';
+    var rowBorder=t.pnlNet>=0?'#00b87a':'#e63050';
+    return '<tr style="cursor:pointer;background:'+rowBg+';border-left:3px solid '+rowBorder+'" onclick="openTradeModal(\''+t.id+'\')"><td style="color:var(--mid);font-size:10px">'+dt+'</td>'
       +'<td style="font-weight:500">'+t.instrument+'</td>'
       +'<td><span class="'+(t.direction==='Long'?'long':'short')+'">'+(t.direction==='Long'?'LONG':'SHORT')+'</span></td>'
       +'<td style="color:var(--mid)">'+t.qty+'</td>'
@@ -1670,6 +1700,12 @@ function localDateStr(isoStr){
   if(isNaN(d.getTime()))return isoStr.slice(0,16);
   return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')
     +'T'+String(d.getHours()).padStart(2,'0')+':'+String(d.getMinutes()).padStart(2,'0');
+}
+
+var dashMonthOffset=0;
+function changeDashMonth(dir){
+  dashMonthOffset+=dir;
+  render();
 }
 
 function fmt(v){return(v>=0?'+':'')+('$'+Math.abs(v).toFixed(0));}
