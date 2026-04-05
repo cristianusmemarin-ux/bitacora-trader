@@ -236,6 +236,17 @@ body.bt-mode input:focus,body.bt-mode select:focus,body.bt-mode textarea:focus{b
 
 .settings-item{width:100%;text-align:left;background:none;border:none;padding:9px 12px;font-size:12px;color:var(--text);border-radius:8px;cursor:pointer;font-family:var(--font);display:flex;align-items:center;gap:10px;}
 .settings-item:hover{background:var(--bg);}
+.settings-sep{height:1px;background:var(--border);margin:6px 0;}
+.settings-email{padding:8px 12px;font-size:11px;color:var(--mid);border-bottom:1px solid var(--border);margin-bottom:6px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+
+/* ── HAMBURGER MENU ─────────────────────────────────── */
+.hamburger-wrap{position:relative;display:flex;align-items:center;}
+.hamburger-btn{background:none;border:1px solid var(--border2);color:var(--mid);width:32px;height:32px;border-radius:8px;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;padding:0;transition:border-color .2s,background .2s;}
+.hamburger-btn:hover{border-color:var(--green);background:var(--green-dim);}
+.hamburger-btn span{display:block;width:14px;height:1.5px;background:currentColor;border-radius:2px;transition:all .2s;}
+.settings-flyout{display:none;position:absolute;top:calc(100% + 8px);right:0;z-index:300;background:var(--card);border:1px solid var(--border);border-radius:14px;padding:8px;box-shadow:0 8px 32px rgba(0,0,0,.14);min-width:210px;}
+.hamburger-wrap:hover .settings-flyout,
+.hamburger-wrap:focus-within .settings-flyout{display:block;}
 </style>
 </head>
 <body>
@@ -264,20 +275,24 @@ body.bt-mode input:focus,body.bt-mode select:focus,body.bt-mode textarea:focus{b
     <div class="sync-dot" id="syncDot"></div>
     <span id="syncLabel" style="font-size:10px;color:var(--dim)">&#x2014;</span>
     <button class="btn-theme" id="themeBtn" onclick="toggleTheme()">&#x1F319;</button>
-    <button onclick="toggleSettingsMenu()" id="settingsBtn" style="background:none;border:1px solid var(--border2);color:var(--mid);width:32px;height:32px;border-radius:8px;font-size:16px;cursor:pointer;display:flex;align-items:center;justify-content:center">&#x2699;&#xFE0F;</button>
+    <div class="hamburger-wrap" id="settingsBtn">
+      <button class="hamburger-btn" aria-label="Menú">
+        <span></span><span></span><span></span>
+      </button>
+      <div class="settings-flyout" id="settingsMenu">
+        <div id="settingsUserEmail" class="settings-email"></div>
+        <button onclick="importExcel()" class="settings-item">&#x2B06; Importar Excel</button>
+        <button onclick="exportExcel()" class="settings-item">&#x2B07; Exportar CSV</button>
+        <button onclick="downloadTemplate()" class="settings-item">&#x1F4CB; Descargar plantilla</button>
+        <div class="settings-sep"></div>
+        <button onclick="loadDemo()" class="settings-item" style="color:var(--green)">&#x1F3AE; Cargar Demo</button>
+        <button onclick="deleteDemo()" class="settings-item" style="color:var(--red)">&#x1F5D1; Borrar Demo</button>
+        <div class="settings-sep"></div>
+        <button onclick="logout()" class="settings-item">&#x1F6AA; Cerrar sesión</button>
+      </div>
+    </div>
   </div>
 </nav>
-<div id="settingsMenu" style="display:none;position:fixed;top:62px;right:16px;z-index:300;background:var(--card);border:1px solid var(--border);border-radius:14px;padding:8px;box-shadow:0 8px 32px rgba(0,0,0,.12);min-width:210px">
-  <div id="settingsUserEmail" style="padding:8px 12px;font-size:11px;color:var(--mid);border-bottom:1px solid var(--border);margin-bottom:6px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"></div>
-  <button onclick="importExcel();toggleSettingsMenu()" class="settings-item">&#x2B06; Importar Excel</button>
-  <button onclick="exportExcel();toggleSettingsMenu()" class="settings-item">&#x2B07; Exportar CSV</button>
-  <button onclick="downloadTemplate();toggleSettingsMenu()" class="settings-item">&#x1F4CB; Descargar plantilla</button>
-  <div style="height:1px;background:var(--border);margin:6px 0"></div>
-  <button onclick="loadDemo();toggleSettingsMenu()" class="settings-item" style="color:var(--green)">&#x1F3AE; Cargar Demo</button>
-  <button onclick="deleteDemo();toggleSettingsMenu()" class="settings-item" style="color:var(--red)">&#x1F5D1; Borrar Demo</button>
-  <div style="height:1px;background:var(--border);margin:6px 0"></div>
-  <button onclick="logout()" class="settings-item">&#x1F6AA; Cerrar sesión</button>
-</div>
 <input type="file" id="excelFileInput" accept=".xlsx,.xls,.csv" style="display:none" onchange="handleExcelFile(this)">
 
 
@@ -430,7 +445,7 @@ function switchAuthTab(m){authMode=m;document.getElementById('tabLogin').style.c
 async function handleAuth(){const email=document.getElementById('authEmail').value.trim();const password=document.getElementById('authPassword').value;const confirm=document.getElementById('authConfirm').value;const btn=document.getElementById('authBtn');if(!email||!password){showAuthError('Ingresa email y contraseña');return;}if(authMode==='register'&&password!==confirm){showAuthError('Las contraseñas no coinciden');return;}if(password.length<6){showAuthError('Mínimo 6 caracteres');return;}btn.disabled=true;btn.textContent='Cargando...';document.getElementById('authError').style.display='none';try{const ep=authMode==='login'?'token?grant_type=password':'signup';const res=await fetch(SB_URL+'/auth/v1/'+ep,{method:'POST',headers:{'Content-Type':'application/json','apikey':SB_KEY},body:JSON.stringify({email,password})});const data=await res.json();if(!res.ok)throw new Error(data.error_description||data.msg||'Error');if(authMode==='register'&&!data.access_token){showAuthError('✓ Revisa tu email para confirmar');btn.disabled=false;btn.textContent='CREAR CUENTA';return;}currentUser=data.user;setAuthToken(data.access_token);document.getElementById('authScreen').style.display='none';await loadAndRender();updateUserNav();}catch(e){showAuthError(e.message);btn.disabled=false;btn.textContent=authMode==='login'?'ENTRAR':'CREAR CUENTA';}}
 function showAuthError(msg){const el=document.getElementById('authError');el.textContent=msg;el.style.display='block';}
 async function logout(){try{await fetch(SB_URL+'/auth/v1/logout',{method:'POST',headers:HEADERS});}catch(_){}currentUser=null;setAuthToken(null);trades=[];localStorage.removeItem('tradelog-session');document.getElementById('authScreen').style.display='flex';document.getElementById('authEmail').value='';document.getElementById('authPassword').value='';}
-function updateUserNav(){const right=document.querySelector('.nav-right');if(right&&currentUser){document.getElementById('userInfo')?.remove();const div=document.createElement('div');div.id='userInfo';div.style.cssText='display:flex;align-items:center;gap:8px;';div.innerHTML='<span style="font-size:10px;color:var(--mid);max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+currentUser.email+'</span><button style="background:none;border:1px solid var(--border2);color:var(--mid);padding:6px 12px;border-radius:6px;font-size:10px;" onclick="logout()">Salir</button>';right.insertBefore(div,right.firstChild);}}
+function updateUserNav(){if(currentUser){const emailEl=document.getElementById('settingsUserEmail');if(emailEl)emailEl.textContent=currentUser.email;}}
 async function fetchWithTimeout(url,opts={},ms=6000){const ctrl=new AbortController();const id=setTimeout(()=>ctrl.abort(),ms);try{const r=await fetch(url,{...opts,signal:ctrl.signal});clearTimeout(id);return r;}catch(e){clearTimeout(id);throw e;}}
 async function init(){try{const saved=localStorage.getItem('tradelog-session');if(saved){const s=JSON.parse(saved);const res=await fetchWithTimeout(SB_URL+'/auth/v1/user',{headers:{'apikey':SB_KEY,'Authorization':'Bearer '+s.access_token}},6000);if(res.ok){currentUser=await res.json();setAuthToken(s.access_token);document.getElementById('authScreen').style.display='none';await loadAndRender();updateUserNav();return;}}}catch(_){}document.getElementById('loading').style.display='none';document.getElementById('authScreen').style.display='flex';}
 async function loadAndRender(){try{const data=await loadTrades();trades=data.map(fromDb);setSync(true,trades.length+' trades');localStorage.setItem('tradelog-session',JSON.stringify({access_token:currentToken}));const sc=localStorage.getItem('gfx-crt');if(sc)crtData=JSON.parse(sc);}catch(e){setSync(false,'Sin conexión');}document.getElementById('loading').style.display='none';render();}
@@ -1369,10 +1384,10 @@ function showColumnMapper(headers,rows){
     });
   });
 
-  // Build preview of first 3 rows
-  var previewHtml='<div style="overflow-x:auto;margin-bottom:16px"><table style="width:100%;border-collapse:collapse;font-size:11px">'
-    +'<thead><tr>'+headers.map(function(h){return'<th style="padding:5px 8px;text-align:left;color:var(--dim);font-weight:400;letter-spacing:.08em;white-space:nowrap">'+h+'</th>';}).join('')+'</tr></thead>'
-    +'<tbody>'+rows.slice(0,3).map(function(r){
+  // Build preview of all rows
+  var previewHtml='<div style="overflow-x:auto;max-height:200px;margin-bottom:16px"><table style="width:100%;border-collapse:collapse;font-size:11px">'
+    +'<thead><tr>'+headers.map(function(h){return'<th style="padding:5px 8px;text-align:left;color:var(--dim);font-weight:400;letter-spacing:.08em;white-space:nowrap;position:sticky;top:0;background:var(--card)">'+h+'</th>';}).join('')+'</tr></thead>'
+    +'<tbody>'+rows.map(function(r){
       return'<tr>'+r.map(function(v){return'<td style="padding:5px 8px;color:var(--text);border-top:1px solid var(--border);white-space:nowrap;max-width:120px;overflow:hidden;text-overflow:ellipsis">'+v+'</td>';}).join('')+'</tr>';
     }).join('')+'</tbody></table></div>';
 
@@ -1482,7 +1497,7 @@ function runImport(){
         } else return null;
       }
 
-      return{date:iso,instrument:inst,direction:dir,qty:qty,
+      var result={date:iso,instrument:inst,direction:dir,qty:qty,
         entryPrice:entry||0,exitPrice:exit||0,
         pnlGross:+pnlGross.toFixed(2),pnlNet:+pnlNet.toFixed(2),
         commission:+totalComm.toFixed(2),
@@ -1490,6 +1505,7 @@ function runImport(){
         setup:setup,emotion:'\u2014',note:nota,rating:3,
         source:'excel',imagePath:null,imagePath2:null,
         keyLevel:null,keyLevelNote:'',mode:currentMode};
+      return result;
     }catch(e){console.error('mapRow error:',e);return null;}
   }).filter(function(t){return t!==null;});
 
@@ -1561,22 +1577,8 @@ async function confirmImport(trades){
   render();
 }
 
-function toggleSettingsMenu(){
-  var m=document.getElementById('settingsMenu');
-  if(!m)return;
-  m.style.display=m.style.display==='none'?'block':'none';
-  if(m.style.display==='block'){
-    var emailEl=document.getElementById('settingsUserEmail');
-    if(emailEl&&currentUser)emailEl.textContent=currentUser.email;
-  }
-}
-document.addEventListener('click',function(e){
-  var m=document.getElementById('settingsMenu');
-  var btn=document.getElementById('settingsBtn');
-  if(m&&btn&&!m.contains(e.target)&&!btn.contains(e.target)){
-    m.style.display='none';
-  }
-});
+function toggleSettingsMenu(){/* menu is now hover-based, no action needed */}
+
 
 function parseLocalDate(raw){
   if(!raw)return new Date();
