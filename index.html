@@ -251,6 +251,8 @@ body.bt-mode input:focus,body.bt-mode select:focus,body.bt-mode textarea:focus{b
 
 .settings-item{width:100%;text-align:left;background:none;border:none;padding:9px 12px;font-size:12px;color:var(--text);border-radius:8px;cursor:pointer;font-family:var(--font);display:flex;align-items:center;gap:10px;}
 .settings-item:hover{background:var(--bg);}
+.settings-item svg{flex-shrink:0;opacity:.7;}
+.settings-item:hover svg{opacity:1;}
 .settings-sep{height:1px;background:var(--border);margin:6px 0;}
 .settings-email{padding:8px 12px;font-size:11px;color:var(--mid);border-bottom:1px solid var(--border);margin-bottom:6px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
 
@@ -289,21 +291,21 @@ body.bt-mode input:focus,body.bt-mode select:focus,body.bt-mode textarea:focus{b
   <div class="nav-right">
     <div class="sync-dot" id="syncDot"></div>
     <span id="syncLabel" style="font-size:10px;color:var(--dim)">&#x2014;</span>
-    <button class="btn-theme" id="themeBtn" onclick="toggleTheme()">&#x1F319;</button>
+    <button class="btn-theme" id="themeBtn" onclick="toggleTheme()"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg></button>
     <div class="hamburger-wrap" id="settingsBtn">
       <button class="hamburger-btn" aria-label="Menú">
         <span></span><span></span><span></span>
       </button>
       <div class="settings-flyout" id="settingsMenu">
         <div id="settingsUserEmail" class="settings-email"></div>
-        <button onclick="importExcel()" class="settings-item">&#x2B06; Importar Excel</button>
-        <button onclick="exportExcel()" class="settings-item">&#x2B07; Exportar CSV</button>
-        <button onclick="downloadTemplate()" class="settings-item">&#x1F4CB; Descargar plantilla</button>
+        <button onclick="importExcel()" class="settings-item"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg> Importar Excel</button>
+        <button onclick="exportExcel()" class="settings-item"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg> Exportar CSV</button>
+        <button onclick="downloadTemplate()" class="settings-item"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg> Descargar plantilla</button>
         <div class="settings-sep"></div>
-        <button onclick="loadDemo()" class="settings-item" style="color:var(--green)">&#x1F3AE; Cargar Demo</button>
-        <button onclick="deleteDemo()" class="settings-item" style="color:var(--red)">&#x1F5D1; Borrar Demo</button>
+        <button onclick="loadDemo()" class="settings-item" style="color:var(--green)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg> Cargar Demo</button>
+        <button onclick="deleteDemo()" class="settings-item" style="color:var(--red)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg> Borrar Demo</button>
         <div class="settings-sep"></div>
-        <button onclick="logout()" class="settings-item">&#x1F6AA; Cerrar sesión</button>
+        <button onclick="logout()" class="settings-item"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg> Cerrar sesión</button>
       </div>
     </div>
   </div>
@@ -330,16 +332,16 @@ body.bt-mode input:focus,body.bt-mode select:focus,body.bt-mode textarea:focus{b
       </button>
       <div class="settings-flyout" id="mobileSettingsMenu" style="right:0;top:calc(100% + 8px)">
         <div id="mobileSettingsEmail" class="settings-email"></div>
-        <button onclick="toggleTheme();closeMobileMenu()" class="settings-item" id="themeBtnM">&#x1F319; Modo oscuro</button>
+        <button onclick="toggleTheme();closeMobileMenu()" class="settings-item" id="themeBtnM"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg> Modo oscuro</button>
         <div class="settings-sep"></div>
-        <button onclick="importExcel();closeMobileMenu()" class="settings-item">&#x2B06; Importar Excel</button>
-        <button onclick="exportExcel();closeMobileMenu()" class="settings-item">&#x2B07; Exportar CSV</button>
-        <button onclick="downloadTemplate();closeMobileMenu()" class="settings-item">&#x1F4CB; Descargar plantilla</button>
+        <button onclick="importExcel();closeMobileMenu()" class="settings-item"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg> Importar Excel</button>
+        <button onclick="exportExcel();closeMobileMenu()" class="settings-item"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg> Exportar CSV</button>
+        <button onclick="downloadTemplate();closeMobileMenu()" class="settings-item"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg> Descargar plantilla</button>
         <div class="settings-sep"></div>
-        <button onclick="loadDemo();closeMobileMenu()" class="settings-item" style="color:var(--green)">&#x1F3AE; Cargar Demo</button>
-        <button onclick="deleteDemo();closeMobileMenu()" class="settings-item" style="color:var(--red)">&#x1F5D1; Borrar Demo</button>
+        <button onclick="loadDemo();closeMobileMenu()" class="settings-item" style="color:var(--green)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="5 3 19 12 5 21 5 3"/></svg> Cargar Demo</button>
+        <button onclick="deleteDemo();closeMobileMenu()" class="settings-item" style="color:var(--red)"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6"/><path d="M14 11v6"/><path d="M9 6V4h6v2"/></svg> Borrar Demo</button>
         <div class="settings-sep"></div>
-        <button onclick="logout()" class="settings-item">&#x1F6AA; Cerrar sesión</button>
+        <button onclick="logout()" class="settings-item"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg> Cerrar sesión</button>
       </div>
     </div>
   </div>
