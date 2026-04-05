@@ -1565,7 +1565,7 @@ function runImport(){
 
       // Date — always local
       var dateObj=parseLocalDate((get('fecha')||'').trim());
-      var iso=dateObj.toISOString();
+      var iso=toLocalISO(dateObj);
 
       // Instrument
       var inst=(get('inst')||'MNQ').toString().toUpperCase().trim();
@@ -1688,6 +1688,15 @@ async function confirmImport(trades){
 
 function toggleSettingsMenu(){/* menu is now hover-based, no action needed */}
 
+
+function toLocalISO(d){
+  if(!d||isNaN(d.getTime()))return new Date().toISOString();
+  return d.getFullYear()+'-'
+    +String(d.getMonth()+1).padStart(2,'0')+'-'
+    +String(d.getDate()).padStart(2,'0')+'T'
+    +String(d.getHours()).padStart(2,'0')+':'
+    +String(d.getMinutes()).padStart(2,'0')+':00.000Z';
+}
 
 function parseLocalDate(raw){
   if(!raw)return new Date();
