@@ -445,6 +445,7 @@ document.addEventListener('click',function(e){
   var wrap=document.getElementById('mobileMenuWrap');
   if(wrap&&!wrap.contains(e.target))closeMobileMenu();
 });
+function setMode(mode){
   currentMode=mode;
   var liveBtn=document.getElementById('modeTabLive');
   var btBtn=document.getElementById('modeTabBT');
