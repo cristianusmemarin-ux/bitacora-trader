@@ -159,46 +159,17 @@ tr:hover td{background:var(--bg);}
 .dash-hero-metrics{display:grid;grid-template-columns:1fr 1px 1fr 1px 1fr 1px 1fr 1px 1fr;align-items:center;gap:0;}
 .dash-hero-divider{height:60px;background:var(--border);width:1px;}
 @media(max-width:750px){
-  .dash-hero-metrics{
-    grid-template-columns:1fr 1fr!important;
-    grid-template-rows:auto;
-  }
-  .dash-hero-pnl{
-    grid-column:1/-1!important;
-    padding:0 0 16px 0!important;
-    border-bottom:1px solid var(--border);
-    text-align:center;
-  }
+  .dash-hero-metrics{grid-template-columns:1fr 1fr!important;}
+  .dash-hero-pnl{grid-column:1/-1!important;padding:0 0 16px 0!important;border-bottom:1px solid var(--border);text-align:center;}
   .dash-hero-divider{display:none!important;}
-  .dash-hero-cell{
-    padding:14px 8px!important;
-    text-align:center;
-    border-bottom:1px solid var(--border);
-    border-right:1px solid var(--border);
-  }
-  .dash-hero-cell:nth-child(even){
-    border-right:none!important;
-  }
-  .dash-hero-last{
-    padding:14px 8px!important;
-    text-align:center;
-    border-bottom:none!important;
-  }
-  .dash-hero-metrics [style*="font-size:32px"]{
-    font-size:20px!important;
-  }
-  .dash-hero-metrics [style*="font-size:11px"]{
-    font-size:10px!important;
-    white-space:nowrap;
-    overflow:hidden;
-    text-overflow:ellipsis;
-  }
-  div[style*="grid-template-columns:repeat(5,1fr)"]{
-    grid-template-columns:repeat(2,1fr)!important;
-  }
+  .dash-hero-cell{padding:14px 8px!important;text-align:center;border-bottom:1px solid var(--border);border-right:1px solid var(--border);}
+  .dash-hero-cell:nth-child(even){border-right:none!important;}
+  .dash-hero-last{padding:14px 8px!important;text-align:center;}
+  .dash-hero-metrics [style*="font-size:32px"]{font-size:20px!important;}
 }
 
 .dash-sec-row{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:20px;}
+@media(max-width:750px){.dash-sec-row{grid-template-columns:repeat(2,1fr)!important;}}
 
 /* BT mode accent */
 body.bt-mode .mode-bar{border-bottom-color:rgba(224,140,0,.3);}
@@ -265,7 +236,15 @@ body.bt-mode input:focus,body.bt-mode select:focus,body.bt-mode textarea:focus{b
 }
 
 /* ── HERO BANNER RESPONSIVE ─────────────────────── */
-
+@media(max-width:900px){
+  div[style*="grid-template-columns:1fr 1px 1fr 1px 1fr 1px 1fr 1px 1fr"]{
+    grid-template-columns:1fr 1fr!important;
+    gap:16px!important;
+  }
+  div[style*="grid-template-columns:repeat(5,1fr)"]{
+    grid-template-columns:repeat(2,1fr)!important;
+  }
+}
 @media(max-width:600px){
   div[style*="font-size:48px"]{font-size:36px!important;}
   div[style*="font-size:32px"]{font-size:24px!important;}
