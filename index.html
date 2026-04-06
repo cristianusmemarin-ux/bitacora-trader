@@ -157,6 +157,16 @@ tr:hover td{background:var(--bg);}
 /* ── DASHBOARD RESPONSIVE ───────────────────── */
 .dash-hero-metrics{display:grid;grid-template-columns:1fr 1px 1fr 1px 1fr 1px 1fr 1px 1fr;align-items:center;gap:0;}
 .dash-hero-divider{height:60px;background:var(--border);width:1px;}
+.dash-hero-hdiv{display:none;grid-column:1/-1;height:1px;background:var(--border);}
+@media(max-width:700px){
+  .dash-hero-metrics{grid-template-columns:1fr 1px 1fr!important;}
+  .dash-hero-pnl{grid-column:1/-1;padding-right:0!important;padding-bottom:14px;border-bottom:1px solid var(--border);}
+  .dash-hero-divider{display:none!important;}
+  .dash-hero-hdiv{display:block;}
+  .dash-hero-cell{padding:12px 8px!important;}
+  .dash-hero-last{padding-left:8px!important;text-align:center!important;}
+  .cell-r{border-right:1px solid var(--border);}
+}
 .dash-sec-row{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:20px;}
 @media(max-width:700px){
   .dash-hero-metrics{grid-template-columns:1fr 1fr;gap:0;row-gap:0;}
@@ -680,7 +690,7 @@ function renderDashboard(){
     // Divider
     +'<div class="dash-hero-divider"></div>'
     // Win Rate
-    +'<div class="dash-hero-cell" style="padding:0 28px;text-align:center">'
+    +'<div class="dash-hero-cell cell-r" style="padding:0 28px;text-align:center">'
     +'<div style="font-size:10px;color:var(--dim);letter-spacing:.06em;text-transform:uppercase;margin-bottom:8px">Win Rate</div>'
     +'<div style="font-family:-apple-system,sans-serif;font-size:32px;font-weight:800;color:'+(monthWr>=50?'var(--green)':'var(--red)')+';line-height:1;letter-spacing:-.02em">'+monthWr.toFixed(1)+'%</div>'
     +'<div style="font-size:11px;color:var(--dim);margin-top:8px">'+monthWins.length+'W &middot; '+monthLosses.length+'L</div>'
@@ -693,8 +703,9 @@ function renderDashboard(){
     +'<div style="font-size:11px;color:var(--dim);margin-top:8px">'+(monthPf>=1.5?'Excelente':monthPf>=1?'Positivo':'Negativo')+'</div>'
     +'</div>'
     +'<div class="dash-hero-divider"></div>'
+    +'<div class="dash-hero-hdiv"></div>'
     // Risk Reward
-    +'<div class="dash-hero-cell" style="padding:0 28px;text-align:center">'
+    +'<div class="dash-hero-cell cell-r" style="padding:0 28px;text-align:center">'
     +'<div style="font-size:10px;color:var(--dim);letter-spacing:.06em;text-transform:uppercase;margin-bottom:8px">Risk / Reward</div>'
     +'<div style="font-family:-apple-system,sans-serif;font-size:32px;font-weight:800;color:'+(monthRr===null?'var(--mid)':monthRr>=1.5?'var(--green)':monthRr>=1?'var(--amber)':'var(--red)')+';line-height:1;letter-spacing:-.02em">'+(monthRr!==null?monthRr.toFixed(2):'\u2014')+'</div>'
     +'<div style="font-size:11px;color:var(--dim);margin-top:8px">'+(monthRr===null?'Sin datos':monthRr>=2?'Excelente':monthRr>=1.5?'Muy bueno':monthRr>=1?'Positivo':'Mejorable')+'</div>'
