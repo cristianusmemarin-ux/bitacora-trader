@@ -53,6 +53,7 @@ nav{background:var(--nav-bg);border-bottom:1px solid var(--border);box-shadow:0 
 .sync-dot.online{background:var(--green);box-shadow:0 0 8px var(--green);animation:pulse 2s infinite;}
 .btn-theme{background:none;border:1px solid var(--border2);color:var(--mid);padding:6px 10px;border-radius:6px;font-size:14px;line-height:1;}
 @keyframes pulse{0%,100%{opacity:1}50%{opacity:.3}}
+@keyframes fadeIn{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:translateY(0)}}
 
 /* MOBILE TOP BAR */
 .top-bar{display:none;background:var(--nav-bg);border-bottom:1px solid var(--border);padding:10px 16px;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;height:52px;}
@@ -775,16 +776,115 @@ function getTradeYears(trs){const yrs=[...new Set(trs.map(t=>new Date(t.date).ge
 function renderYearSelector(trs){const years=getTradeYears(trs);const sel=filterYearMonths||years[0];if(!filterYearMonths)filterYearMonths=sel;return years.map(y=>'<button onclick="setFilterYear('+y+')" style="padding:4px 10px;border-radius:6px;font-size:10px;font-family:var(--font);border:1px solid '+(y===sel?'var(--green)':'var(--border2)')+';background:'+(y===sel?'var(--green-dim)':'none')+';color:'+(y===sel?'var(--green)':'var(--mid)')+';">'+y+'</button>').join('');}
 function renderCalSelector(trs){const years=getTradeYears(trs);const MESES=['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];const selY=filterYearCal||years[0];const selM=filterMonthCal!=null?filterMonthCal:new Date().getMonth();if(!filterYearCal)filterYearCal=selY;if(filterMonthCal===null)filterMonthCal=selM;const yearBtns=years.map(y=>'<button onclick="setFilterCalYear('+y+')" style="padding:4px 10px;border-radius:6px;font-size:10px;font-family:var(--font);border:1px solid '+(y===selY?'var(--blue)':'var(--border2)')+';background:'+(y===selY?'rgba(45,125,210,.1)':'none')+';color:'+(y===selY?'var(--blue)':'var(--mid)')+';">'+y+'</button>').join('');const monthBtns='<select onchange="setFilterCalMonth(this.value)" style="padding:4px 8px;border-radius:6px;font-size:10px;font-family:var(--font);border:1px solid var(--border2);background:var(--surface);color:var(--text);width:auto">'+MESES.map((m,i)=>'<option value="'+i+'"'+(selM===i?' selected':'')+'>'+m+'</option>').join('')+'</select>';return yearBtns+monthBtns;}
 function setFilterYear(y){filterYearMonths=y;render();}function setFilterCalYear(y){filterYearCal=y;render();}function setFilterCalMonth(v){filterMonthCal=parseInt(v);render();}
+var calSelectedDay=null;
+function showCalDay(day,selY,selM){
+  var trs=currentTrades();
+  // Toggle off if same day clicked
+  if(calSelectedDay===day){
+    calSelectedDay=null;
+    var p=document.getElementById('calDayPanel');if(p)p.remove();
+    // Remove outline from all cells
+    document.querySelectorAll('[data-cal-day]').forEach(function(el){el.style.outline='none';});
+    return;
+  }
+  calSelectedDay=day;
+  var dayTrades=trs.filter(function(t){var d=new Date(t.date);return d.getFullYear()===selY&&d.getMonth()===selM&&d.getDate()===day;});
+  dayTrades.sort(function(a,b){return new Date(a.date)-new Date(b.date);});
+  var DIAS_FULL=['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+  var totalPnl=dayTrades.reduce(function(s,t){return s+t.pnlNet;},0);
+  var wins=dayTrades.filter(function(t){return t.pnlNet>0;}).length;
+  var pnlCol=totalPnl>=0?'var(--green)':'var(--red)';
+  var rows=dayTrades.map(function(t){
+    var d=new Date(t.date);
+    var hm=d.getHours()+':'+(d.getMinutes()<10?'0':'')+d.getMinutes();
+    var col=t.pnlNet>=0?'var(--green)':'var(--red)';
+    var bg=t.pnlNet>=0?'rgba(0,184,122,.06)':'rgba(230,48,80,.06)';
+    var border=t.pnlNet>=0?'var(--green)':'var(--red)';
+    var dir=t.direction==='Long'?'<span class="long">LONG</span>':'<span class="short">SHORT</span>';
+    return '<div onclick="openTradeModal(\''+t.id+'\')" style="cursor:pointer;display:flex;align-items:center;gap:12px;padding:9px 12px;border-radius:8px;background:'+bg+';border-left:3px solid '+border+';margin-bottom:6px;transition:background .15s">'
+      +'<span style="font-size:10px;color:var(--mid);min-width:40px">'+hm+'</span>'
+      +'<span style="font-weight:600;font-size:12px;min-width:36px">'+t.instrument+'</span>'
+      +dir
+      +'<span style="font-size:11px;color:var(--mid);flex:1">'+(t.setup||'—')+'</span>'
+      +'<span style="font-size:13px;font-weight:700;color:'+col+'">$'+Math.abs(t.pnlNet).toFixed(0)+'<span style="font-size:10px"> '+(t.pnlNet>=0?'▲':'▼')+'</span></span>'
+      +'</div>';
+  }).join('');
+  var panelHtml='<div id="calDayPanel" style="grid-column:1/-1;margin-top:2px;margin-bottom:4px;border:1px solid var(--border);border-radius:12px;overflow:hidden;animation:fadeIn .18s">'
+    +'<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;background:var(--bg);border-bottom:1px solid var(--border)">'
+    +'<div style="display:flex;align-items:center;gap:10px">'
+    +'<span style="font-size:13px;font-weight:600;color:var(--text)">'+DIAS_FULL[selM]+' '+day+'</span>'
+    +'<span style="font-size:11px;color:var(--mid)">'+dayTrades.length+' trade'+(dayTrades.length!==1?'s':'')+' &middot; '+wins+'W / '+(dayTrades.length-wins)+'L</span>'
+    +'</div>'
+    +'<div style="display:flex;align-items:center;gap:12px">'
+    +'<span style="font-size:15px;font-weight:700;color:'+pnlCol+'">'+(totalPnl>=0?'+':'')+totalPnl.toFixed(0)+'</span>'
+    +'<button onclick="calSelectedDay=null;var p=document.getElementById(\'calDayPanel\');if(p)p.remove();document.querySelectorAll(\'[data-cal-day]\').forEach(function(e){e.style.outline=\'none\';})" style="background:none;border:none;color:var(--mid);font-size:16px;cursor:pointer;line-height:1;padding:2px 6px">&times;</button>'
+    +'</div></div>'
+    +'<div style="padding:10px 12px">'+rows+'</div>'
+    +'</div>';
+
+  // Remove any existing panel
+  var old=document.getElementById('calDayPanel');if(old)old.remove();
+
+  // Update outlines: clear all, highlight clicked
+  document.querySelectorAll('[data-cal-day]').forEach(function(el){el.style.outline='none';});
+  var clickedCell=document.querySelector('[data-cal-day="'+day+'"]');
+  if(clickedCell)clickedCell.style.outline='2px solid var(--text)';
+
+  // Find the row anchor: the cal-row-anchor after the week containing this day
+  // Each week row has a sentinel div with id="cal-row-after-{weekIndex}"
+  var firstDow=new Date(selY,selM,1).getDay();
+  var weekIndex=Math.floor((firstDow+day-1)/7);
+  var anchor=document.getElementById('cal-row-after-'+weekIndex);
+  if(anchor){
+    anchor.insertAdjacentHTML('afterend',panelHtml);
+  } else {
+    // Fallback: insert after calGrid
+    var calEl=document.getElementById('calGrid');
+    if(calEl)calEl.insertAdjacentHTML('afterend',panelHtml);
+  }
+}
 function renderCalendar(trs){
   const DIAS_FULL=['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
   const years=getTradeYears(trs);const selY=filterYearCal||years[0];const selM=filterMonthCal!=null?filterMonthCal:new Date().getMonth();
   const byDay={};trs.forEach(t=>{const d=new Date(t.date);if(d.getFullYear()!==selY||d.getMonth()!==selM)return;const key=d.getDate();if(!byDay[key])byDay[key]={pnl:0,count:0,wins:0};byDay[key].pnl+=t.pnlNet;byDay[key].count++;if(t.pnlNet>0)byDay[key].wins++;});
   const maxAbs=Math.max(...Object.values(byDay).map(d=>Math.abs(d.pnl)),1);const firstDow=new Date(selY,selM,1).getDay();const daysInMonth=new Date(selY,selM+1,0).getDate();
   const monthPnl=Object.values(byDay).reduce((s,d)=>s+d.pnl,0);const monthCount=Object.values(byDay).reduce((s,d)=>s+d.count,0);const monthWins=Object.values(byDay).reduce((s,d)=>s+d.wins,0);const monthCol=monthPnl>=0?'var(--green)':'var(--red)';
-  let cells='';for(let i=0;i<firstDow;i++)cells+='<div></div>';
-  for(let day=1;day<=daysInMonth;day++){const d=byDay[day];const dow=new Date(selY,selM,day).getDay();const isWeekend=dow===0||dow===6;if(d){const intensity=Math.min(Math.abs(d.pnl)/maxAbs,1);const bg=d.pnl>0?'rgba(0,184,122,'+(0.12+intensity*0.55)+')':d.pnl<0?'rgba(230,48,80,'+(0.12+intensity*0.55)+')':'var(--border)';const tc=d.pnl>0?'var(--green)':'var(--red)';const ps=(d.pnl>=0?'+':'-')+'$'+Math.abs(d.pnl).toFixed(0);cells+='<div style="background:'+bg+';border-radius:8px;padding:6px 4px;min-height:56px;display:flex;flex-direction:column;gap:2px" title="'+DIAS_FULL[selM]+' '+day+': '+ps+'"><span style="font-size:10px;color:var(--mid);font-weight:600">'+day+'</span><span style="font-size:9px;color:var(--dim)">'+d.count+(d.count===1?' trade':' trades')+'</span><span style="font-size:11px;font-weight:700;color:'+tc+';margin-top:auto">'+ps+'</span></div>';}else{const weekendBg=isWeekend?'rgba(0,0,0,0.02)':'var(--bg)';cells+='<div style="background:'+weekendBg+';border-radius:8px;padding:6px 4px;min-height:56px;border:1px dashed var(--border)"><span style="font-size:10px;color:'+(isWeekend?'var(--dim)':'var(--border2)')+'">'+day+'</span></div>';}}
+
+  // Build week rows: each week is 7 cells, followed by a full-span sentinel div
+  const totalCells=firstDow+daysInMonth;
+  const totalWeeks=Math.ceil(totalCells/7);
+  let weekRows='';
+  for(let w=0;w<totalWeeks;w++){
+    let rowCells='';
+    for(let col=0;col<7;col++){
+      const cellIndex=w*7+col;
+      const day=cellIndex-firstDow+1;
+      if(day<1||day>daysInMonth){
+        rowCells+='<div></div>';
+        continue;
+      }
+      const d=byDay[day];const dow=new Date(selY,selM,day).getDay();const isWeekend=dow===0||dow===6;
+      if(d){
+        const intensity=Math.min(Math.abs(d.pnl)/maxAbs,1);
+        const bg=d.pnl>0?'rgba(0,184,122,'+(0.12+intensity*0.55)+')':d.pnl<0?'rgba(230,48,80,'+(0.12+intensity*0.55)+')':'var(--border)';
+        const tc=d.pnl>0?'var(--green)':'var(--red)';
+        const ps=(d.pnl>=0?'+':'-')+'$'+Math.abs(d.pnl).toFixed(0);
+        const isSelected=calSelectedDay===day;
+        rowCells+='<div data-cal-day="'+day+'" onclick="showCalDay('+day+','+selY+','+selM+')" style="cursor:pointer;background:'+bg+';border-radius:8px;padding:6px 4px;min-height:56px;display:flex;flex-direction:column;gap:2px;outline:'+(isSelected?'2px solid var(--text)':'none')+';outline-offset:-2px;transition:opacity .15s" title="'+DIAS_FULL[selM]+' '+day+': '+ps+'"><span style="font-size:10px;color:var(--mid);font-weight:600">'+day+'</span><span style="font-size:9px;color:var(--dim)">'+d.count+(d.count===1?' trade':' trades')+'</span><span style="font-size:11px;font-weight:700;color:'+tc+';margin-top:auto">'+ps+'</span></div>';
+      }else{
+        const weekendBg=isWeekend?'rgba(0,0,0,0.02)':'var(--bg)';
+        rowCells+='<div style="background:'+weekendBg+';border-radius:8px;padding:6px 4px;min-height:56px;border:1px dashed var(--border)"><span style="font-size:10px;color:'+(isWeekend?'var(--dim)':'var(--border2)')+'">'+day+'</span></div>';
+      }
+    }
+    // Each week row: 7 cells + a full-span sentinel (hidden, zero-height) used as anchor for the panel
+    weekRows+='<div style="display:contents">'+rowCells+'</div>'
+      +'<div id="cal-row-after-'+w+'" style="grid-column:1/-1;height:0;overflow:visible;"></div>';
+  }
+
   const monthSummary=monthCount>0?'<div style="display:flex;gap:16px;align-items:center;margin-bottom:10px;padding:10px 14px;background:var(--bg);border-radius:10px;border:1px solid var(--border)"><div style="font-family:-apple-system,sans-serif;font-size:22px;font-weight:700;color:'+monthCol+';">'+(monthPnl>=0?'+':'')+monthPnl.toFixed(0)+'</div><div style="flex:1"><div style="font-size:11px;color:var(--mid)">'+monthCount+' trades · '+monthWins+'W / '+(monthCount-monthWins)+'L · '+(monthCount?((monthWins/monthCount)*100).toFixed(0):0)+'% WR</div><div style="font-size:10px;color:var(--dim);margin-top:2px">'+DIAS_FULL[selM]+' '+selY+'</div></div></div>':'<div style="margin-bottom:10px;padding:10px 14px;background:var(--bg);border-radius:10px;border:1px solid var(--border);font-size:11px;color:var(--dim)">Sin trades en '+DIAS_FULL[selM]+' '+selY+'</div>';
-  return monthSummary+'<div style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-bottom:6px">'+['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'].map(l=>'<div style="text-align:center;font-size:9px;color:var(--dim);padding:3px 0;font-weight:600">'+l+'</div>').join('')+'</div><div style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px;">'+cells+'</div>';
+  return monthSummary
+    +'<div style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-bottom:6px">'+['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'].map(l=>'<div style="text-align:center;font-size:9px;color:var(--dim);padding:3px 0;font-weight:600">'+l+'</div>').join('')+'</div>'
+    +'<div id="calGrid" style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px;">'+weekRows+'</div>';
 }
 function renderMonths(trs){const MESES=['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];const byMonth={};trs.forEach(t=>{const d=new Date(t.date),key=d.getFullYear()+'-'+d.getMonth();if(!byMonth[key])byMonth[key]={pnl:0,count:0,wins:0,month:d.getMonth(),year:d.getFullYear()};byMonth[key].pnl+=t.pnlNet;byMonth[key].count++;if(t.pnlNet>0)byMonth[key].wins++;});const list=Object.values(byMonth).sort((a,b)=>a.year-b.year||a.month-b.month).slice(-6);if(!list.length)return'<div style="color:var(--dim);font-size:11px;text-align:center;padding:20px">Sin datos</div>';const mx=Math.max(...list.map(m=>Math.abs(m.pnl)),1);return list.map(m=>{const col=m.pnl>=0?'var(--green)':'var(--red)';const w=Math.abs(m.pnl)/mx*100;const ps=(m.pnl>=0?'+$':'-$')+Math.abs(m.pnl).toFixed(0);return'<div style="margin-bottom:10px"><div style="display:flex;justify-content:space-between;margin-bottom:3px"><span style="font-size:10px;color:var(--text)">'+MESES[m.month]+' '+m.year+'</span><div style="display:flex;gap:8px"><span style="font-size:9px;color:var(--mid)">'+m.count+' trades</span><span style="font-size:10px;font-weight:600;color:'+col+'">'+ps+'</span></div></div><div class="stat-bar-bg"><div class="stat-bar-fill" style="width:'+w+'%;background:'+col+'"></div></div></div>';}).join('');}
 function renderMonthsGrid(trs){const MESES=['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];const years=getTradeYears(trs);const year=filterYearMonths||years[0];const byMonth={};trs.forEach(t=>{const d=new Date(t.date);if(d.getFullYear()!==year)return;const m=d.getMonth();if(!byMonth[m])byMonth[m]={pnl:0,count:0,wins:0};byMonth[m].pnl+=t.pnlNet;byMonth[m].count++;if(t.pnlNet>0)byMonth[m].wins++;});const maxAbs=Math.max(...Object.values(byMonth).map(m=>Math.abs(m.pnl)),1);return'<div style="display:grid;grid-template-columns:repeat(6,1fr);gap:8px">'+MESES.map((name,i)=>{const m=byMonth[i];const pnl=m?m.pnl:null;const bg=pnl===null?'var(--bg)':pnl>0?'rgba(0,184,122,'+(0.1+Math.abs(pnl)/maxAbs*0.5)+')':'rgba(230,48,80,'+(0.1+Math.abs(pnl)/maxAbs*0.5)+')';const intensity=pnl!==null?Math.abs(pnl)/maxAbs:0;const textCol=intensity>.5?'#fff':pnl===null?'var(--dim)':pnl>=0?'var(--green)':'var(--red)';const subTextCol=intensity>.5?'rgba(255,255,255,.8)':'var(--dim)';const ps=pnl===null?'—':(pnl>=0?'+$':'-$')+Math.abs(pnl).toFixed(0);const wr=m&&m.count?(m.wins/m.count*100).toFixed(0)+'% WR':'';return'<div style="background:'+bg+';border:1px solid var(--border);border-radius:10px;padding:12px 8px;text-align:center"><div style="font-size:10px;color:'+subTextCol+';margin-bottom:6px">'+name+'</div><div style="font-size:15px;font-weight:700;color:'+textCol+';line-height:1">'+ps+'</div><div style="font-size:9px;color:'+subTextCol+';margin-top:4px">'+(m?m.count+' trades':'')+'</div><div style="font-size:9px;color:'+textCol+';margin-top:2px;letter-spacing:.04em">'+wr+'</div></div>';}).join('')+'</div>';}
