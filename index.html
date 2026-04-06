@@ -782,9 +782,10 @@ function renderDashboard(){
     +'<div style="display:flex;gap:6px;align-items:center">'+renderCalSelector(trs)+'</div>'
     +'</div><div class="card-body">'+renderCalendar(trs)+'</div></div>';
 
-  return modeL.includes('bt')||modeL.includes('BACKTESTING')
-    ?'<div style="margin-bottom:16px">'+modeL+'</div>'+hero+secRow
-    :hero+secRow
+  return hero+secRow
+
+
+
     +'<div class="grid-2">'+eqCard+calCard+'</div>'
     +'<div class="grid-3"><div class="card"><div class="card-head"><div><div class="card-title">MAE / MFE</div><div class="card-subtitle">An\xE1lisis de gesti\xF3n</div></div></div><div class="card-body" style="padding:10px 6px 6px"><canvas id="maeCanvas" height="160" style="width:100%;display:block"></canvas><div style="display:flex;gap:14px;justify-content:center;margin-top:6px"><span style="font-size:9px;color:var(--dim)"><span style="color:var(--green)">\u25CF</span> Ganador</span><span style="font-size:9px;color:var(--dim)"><span style="color:var(--red)">\u25CF</span> Perdedor</span></div></div></div><div class="card"><div class="card-head"><div><div class="card-title">P&amp;L por Mes</div><div class="card-subtitle">Rendimiento mensual</div></div></div><div class="card-body">'+renderMonths(trs)+'</div></div><div class="card"><div class="card-head"><div><div class="card-title">Por Setup</div><div class="card-subtitle">Estrategias m\xE1s rentables</div></div></div><div class="card-body">'+renderSetups(trs)+'</div></div></div>'
     +'<div class="grid-2b"><div class="card" style="grid-column:1/-1"><div class="card-head"><div><div class="card-title">P&amp;L Mensual \u2014 A\xF1o completo</div><div class="card-subtitle">Los 12 meses</div></div><div style="display:flex;gap:6px;align-items:center">'+renderYearSelector(trs)+'</div></div><div class="card-body">'+renderMonthsGrid(trs)+'</div></div></div>'
