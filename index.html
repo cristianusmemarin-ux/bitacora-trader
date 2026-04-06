@@ -86,7 +86,7 @@ main{max-width:1340px;margin:0 auto;padding:24px 20px;}
 .kpi-label{font-size:11px;color:var(--mid);margin-bottom:6px;}
 .kpi-value{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;font-size:28px;font-weight:700;line-height:1;letter-spacing:-.02em;}
 .kpi-sub{font-size:11px;color:var(--dim);margin-top:6px;}
-.grid-2{display:grid;grid-template-columns:1fr 320px;gap:14px;margin-bottom:14px;}
+.grid-2{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px;}
 .grid-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;margin-bottom:14px;}
 .grid-2b{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px;}
 @media(max-width:900px){.grid-2,.grid-3,.grid-2b{grid-template-columns:1fr;}}
@@ -742,7 +742,7 @@ function renderDashboard(){
     +'<span style="font-size:10px;color:var(--dim)">DD m\xE1x: <b id="maxDDLabel" style="color:var(--red)"></b></span>'
     +'<span class="badge" style="color:'+(isPos?'var(--green)':'var(--red)')+'">'+fmt(total)+'</span>'
     +'</div></div>'
-    +'<div class="card-body" style="padding:10px 6px 6px"><canvas id="eqCanvas" height="200" style="width:100%;display:block"></canvas></div></div>';
+    +'<div class="card-body" style="padding:10px 6px 6px"><canvas id="eqCanvas" height="140" style="width:100%;display:block"></canvas></div></div>';
 
   var calCard='<div class="card"><div class="card-head">'
     +'<div><div class="card-title">Calendario P&amp;L</div><div class="card-subtitle">D\xEDas ganadores vs perdedores</div></div>'
