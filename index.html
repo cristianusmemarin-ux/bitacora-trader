@@ -1780,25 +1780,24 @@ function previewImport(valid){
   pendingImportTrades=valid;
 }
 
-async function confirmImport(trades){
+async function confirmImport(importList){
   closeTradeModal();
-  showToast('Importando '+trades.length+' trades...');
+  showToast('Importando '+importList.length+' trades...');
   var errors=0,skipped=0;
-  for(var i=0;i<trades.length;i++){
+  for(var i=0;i<importList.length;i++){
     try{
-      var saved=await insertTrade(trades[i]);
-      if(saved&&saved[0])trades=[fromDb(saved[0]),...trades];
+      await insertTrade(importList[i]);
     }catch(e){
       var msg=(e.message||'');
       if(msg.includes('23505')||msg.includes('duplicate')){
-        skipped++; // Skip duplicates silently
+        skipped++;
       } else {errors++;console.error(e);}
     }
   }
   var data=await loadTrades();
   trades=data.map(fromDb);
   setSync(true,trades.length+' trades');
-  var imported=trades.length-errors-skipped;
+  var imported=importList.length-errors-skipped;
   showToast(imported+' trades importados'+(skipped?' ('+skipped+' duplicados omitidos)':'')+' \u2713');
   pendingImportTrades=[];
   render();
