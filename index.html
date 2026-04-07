@@ -96,7 +96,7 @@ main{max-width:1340px;margin:0 auto;padding:24px 20px;}
 .card-subtitle{font-size:11px;color:var(--mid);margin-top:2px;}
 .badge{font-size:10px;padding:4px 10px;border-radius:20px;background:var(--bg);color:var(--mid);border:1px solid var(--border);}
 .card-body{padding:18px;}
-.tbl-wrap{overflow-x:auto;max-height:320px;overflow-y:auto;}
+.tbl-wrap{overflow-x:auto;}
 table{width:100%;border-collapse:collapse;font-size:11px;white-space:nowrap;}
 th{padding:9px 12px;text-align:left;font-size:9px;color:var(--dim);letter-spacing:.1em;border-bottom:1px solid var(--border);font-weight:400;position:sticky;top:0;background:var(--card);}
 td{padding:8px 12px;border-bottom:1px solid var(--border);}
@@ -889,10 +889,48 @@ function renderByInstrument(trs){
 function renderCRTStats(trs){const stats={};trs.forEach(t=>{const m=(t.note||'').match(/\[CRT:([^\]]+)\]/);if(!m)return;m[1].split(',').forEach(r=>{if(!stats[r])stats[r]={tp:0,sl:0};if(t.pnlNet>0)stats[r].tp++;else stats[r].sl++;});});const list=Object.entries(stats).sort((a,b)=>(b[1].tp/(b[1].tp+b[1].sl||1))-(a[1].tp/(a[1].tp+a[1].sl||1))).slice(0,6);if(!list.length)return'<div style="color:var(--dim);font-size:11px;text-align:center;padding:20px">Marca rangos CRT al ingresar trades para ver estadísticas</div>';return list.map(([name,d])=>{const total=d.tp+d.sl,wr=total?d.tp/total*100:0,col=wr>=50?'var(--green)':'var(--red)';return'<div style="display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--border)"><div><div style="font-size:11px;font-weight:600;color:var(--text)">'+name+'</div><div style="font-size:10px;color:var(--mid);margin-top:2px">'+d.tp+'TP · '+d.sl+'SL · '+total+' trades</div></div><div style="font-size:16px;font-weight:700;color:'+col+'">'+wr.toFixed(0)+'%</div></div>';}).join('');}
 
 // ─── LOG ───────────────────────────────────────────────────────
+var logSelectedIds=new Set();
+function updateBulkBar(){
+  var bar=document.getElementById('bulkBar');
+  var cnt=document.getElementById('bulkCount');
+  if(!bar||!cnt)return;
+  var n=logSelectedIds.size;
+  bar.style.display=n>0?'flex':'none';
+  cnt.textContent=n+' seleccionado'+(n!==1?'s':'');
+}
+function toggleSelectAll(cb){
+  var allCbs=document.querySelectorAll('.log-chk');
+  allCbs.forEach(function(c){
+    c.checked=cb.checked;
+    if(cb.checked)logSelectedIds.add(c.dataset.id);
+    else logSelectedIds.delete(c.dataset.id);
+  });
+  updateBulkBar();
+}
+async function bulkDelete(){
+  var ids=[...logSelectedIds];
+  if(!ids.length)return;
+  if(!confirm('\u00BFEliminar '+ids.length+' trade'+(ids.length!==1?'s':'')+' seleccionado'+(ids.length!==1?'s':'')+' ?'))return;
+  showToast('Eliminando '+ids.length+' trades...');
+  for(var i=0;i<ids.length;i++){
+    var id=ids[i];
+    var trade=trades.find(function(t){return t.id==id;});
+    try{
+      if(trade&&trade.imagePath)await deleteTradeImage(trade.imagePath);
+      if(trade&&trade.imagePath2)await deleteTradeImage(trade.imagePath2);
+      await deleteTrade(id);
+      trades=trades.filter(function(t){return t.id!=id;});
+    }catch(e){console.error('Error eliminando trade '+id,e);}
+  }
+  logSelectedIds.clear();
+  showToast(ids.length+' trades eliminados \u2713');
+  render();
+}
 function renderLog(){
   const trs=currentTrades();
   const modeL=modeLabel();
   if(!trs.length)return'<div class="empty"><div style="margin-bottom:10px">'+modeL+'</div><div class="empty-icon">&#x1F4CB;</div><div class="empty-title">Sin trades</div><div class="empty-sub">Usa <b style="color:'+modeAccent()+'">+ Nuevo</b></div></div>';
+  logSelectedIds.clear();
   const rows=trs.map(function(t){
     const d=new Date(t.date);
     const dt=(d.getMonth()+1)+'/'+d.getDate()+' '+d.getHours()+':'+(d.getMinutes()<10?'0':'')+d.getMinutes();
@@ -908,7 +946,8 @@ function renderLog(){
     const kl=(t.keyLevel&&t.keyLevel!=='\u2014')?'<span style="background:rgba(45,125,210,.1);border:1px solid var(--blue);border-radius:4px;padding:2px 6px;font-size:9px;color:var(--blue)">'+t.keyLevel+'</span>':'<span style="color:var(--dim)">&#x2014;</span>';
     var rowBg=t.pnlNet>=0?'rgba(0,184,122,.05)':'rgba(230,48,80,.05)';
     var rowBorder=t.pnlNet>=0?'#00b87a':'#e63050';
-    return '<tr style="cursor:pointer;background:'+rowBg+';border-left:3px solid '+rowBorder+'" onclick="openTradeModal(\''+t.id+'\')"><td style="color:var(--mid);font-size:10px">'+dt+'</td>'
+    return '<tr style="cursor:pointer;background:'+rowBg+';border-left:3px solid '+rowBorder+'" onclick="openTradeModal(\''+t.id+'\')"><td onclick="event.stopPropagation()" style="width:28px;padding:8px 6px 8px 10px"><input id="chk-'+t.id+'" class="log-chk" type="checkbox" data-id="'+t.id+'" onchange="if(this.checked)logSelectedIds.add(\''+t.id+'\');else logSelectedIds.delete(\''+t.id+'\');updateBulkBar()" style="cursor:pointer;width:14px;height:14px;accent-color:var(--red)"></td>'
+      +'<td style="color:var(--mid);font-size:10px">'+dt+'</td>'
       +'<td style="font-weight:500">'+t.instrument+'</td>'
       +'<td><span class="'+(t.direction==='Long'?'long':'short')+'">'+(t.direction==='Long'?'LONG':'SHORT')+'</span></td>'
       +'<td style="color:var(--mid)">'+t.qty+'</td>'
@@ -926,14 +965,20 @@ function renderLog(){
       +'<button onclick="confirmDelete(\''+t.id+'\')" style="background:none;border:1px solid var(--border2);color:var(--red);padding:3px 8px;border-radius:4px;font-size:10px"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="display:inline;vertical-align:middle"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M9 6V4h6v2"/></svg></button>'
       +'</td></tr>';
   }).join('');
+  var bulkBar='<div id="bulkBar" style="display:none;align-items:center;gap:10px;padding:8px 14px;background:var(--red-dim);border:1px solid var(--red);border-radius:10px;margin-bottom:10px">'
+    +'<span id="bulkCount" style="font-size:11px;font-weight:600;color:var(--red)"></span>'
+    +'<button onclick="bulkDelete()" style="background:var(--red);border:none;color:#fff;font-weight:700;padding:5px 14px;border-radius:6px;font-size:11px;font-family:var(--font)">&#x1F5D1; Eliminar seleccionados</button>'
+    +'<button onclick="logSelectedIds.clear();document.querySelectorAll(\'.log-chk\').forEach(function(c){c.checked=false;});updateBulkBar()" style="background:none;border:1px solid var(--border2);color:var(--mid);padding:5px 12px;border-radius:6px;font-size:11px;font-family:var(--font)">Cancelar</button>'
+    +'</div>';
   return '<div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">'+modeL+'</div>'
+    +bulkBar
     +'<div class="card"><div class="card-head"><div class="card-title">Trades</div><span class="badge">'+trs.length+' trades</span></div>'
     +'<div class="tbl-wrap"><table><thead><tr>'
+    +'<th style="width:28px"><input type="checkbox" onchange="toggleSelectAll(this)" style="cursor:pointer;width:14px;height:14px;accent-color:var(--red)" title="Seleccionar todo"></th>'
     +'<th>FECHA</th><th>INST.</th><th>DIR</th><th>QTY</th><th>ENTRY</th><th>EXIT</th>'
     +'<th>P&L</th><th>DUR.</th><th>SETUP</th><th>KEY LVL</th><th>CRT</th><th>NOTA</th><th>CHARTS</th><th></th>'
     +'</tr></thead><tbody>'+rows+'</tbody></table></div></div>';
 }
-
 
 function renderForm(){
   const e=editingTrade;
