@@ -1783,16 +1783,28 @@ function previewImport(valid){
 async function confirmImport(importList){
   closeTradeModal();
   showToast('Importando '+importList.length+' trades...');
-  var errors=0,skipped=0;
-  for(var i=0;i<importList.length;i++){
-    try{
-      await insertTrade(importList[i]);
-    }catch(e){
-      var msg=(e.message||'');
-      if(msg.includes('23505')||msg.includes('duplicate')){
-        skipped++;
-      } else {errors++;console.error(e);}
-    }
+  var skipped=0,errors=0;
+  // Insert in parallel groups of 10 to avoid rate limiting
+  var CONCURRENCY=10;
+  for(var start=0;start<importList.length;start+=CONCURRENCY){
+    var chunk=importList.slice(start,start+CONCURRENCY);
+    var results=await Promise.allSettled(chunk.map(function(t){
+      return fetch(SB_URL+'/rest/v1/trades',{
+        method:'POST',
+        headers:Object.assign({},HEADERS,{'Prefer':'return=minimal'}),
+        body:JSON.stringify(toDb(t))
+      }).then(function(r){
+        if(r.status===201||r.status===204)return 'ok';
+        return r.text().then(function(body){throw new Error(body);});
+      });
+    }));
+    results.forEach(function(r){
+      if(r.status==='rejected'){
+        var msg=r.reason&&r.reason.message||'';
+        if(msg.includes('23505')||msg.includes('duplicate'))skipped++;
+        else{errors++;console.error(r.reason);}
+      }
+    });
   }
   var data=await loadTrades();
   trades=data.map(fromDb);
