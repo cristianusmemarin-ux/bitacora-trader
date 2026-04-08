@@ -7,6 +7,15 @@
 <title>bitácora trader</title>
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 44 44'%3E%3Cpolygon points='22,1 43,22 22,43 1,22' fill='%230a0f1e'/%3E%3Cpolygon points='22,1 43,22 22,43' fill='%2300b87a'/%3E%3Cpolyline points='7,31 14,22 23,26 33,11' fill='none' stroke='%23ffffff' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'/%3E%3Ccircle cx='33' cy='11' r='3' fill='%23ffffff'/%3E%3C/svg%3E">
 <link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=Syne:wght@700;800&display=swap" rel="stylesheet">
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="description" content="bitácora trader — Tu diario de trading en español">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>bitácora trader</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 44 44'%3E%3Cpolygon points='22,1 43,22 22,43 1,22' fill='%230a0f1e'/%3E%3Cpolygon points='22,1 43,22 22,43' fill='%2300b87a'/%3E%3Cpolyline points='7,31 14,22 23,26 33,11' fill='none' stroke='%23ffffff' stroke-width='2.2' stroke-linecap='round' stroke-linejoin='round'/%3E%3Ccircle cx='33' cy='11' r='3' fill='%23ffffff'/%3E%3C/svg%3E">
+<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@300;400;500&family=Syne:wght@700;800&display=swap" rel="stylesheet">
 <style>
 :root{--bg:#f4f6fa;--surface:#ffffff;--card:#ffffff;--border:#e2e8f0;--border2:#cbd5e1;--green:#00b87a;--green-dim:rgba(0,184,122,0.10);--red:#e63050;--red-dim:rgba(230,48,80,0.10);--blue:#2d7dd2;--amber:#e08c00;--purple:#7c3aed;--text:#1a2233;--dim:#94a3b8;--mid:#64748b;--font:'DM Mono',monospace;--display:'Syne',sans-serif;--nav-bg:#ffffff;--logo-color:#1a2233;}
 body.dark{--bg:#07080d;--surface:#0c0e16;--card:#10131e;--border:#181f30;--border2:#1f2a40;--green:#00e5a0;--green-dim:rgba(0,229,160,0.12);--red:#ff4060;--red-dim:rgba(255,64,96,0.12);--blue:#4d9fff;--amber:#ffb340;--purple:#a78bfa;--text:#c0cce0;--dim:#3a4a60;--mid:#6a7d98;--nav-bg:#0c0e16;--logo-color:#ffffff;}
@@ -527,8 +536,8 @@ async function loadTrades(){return sbFetch('trades?order=date.desc&limit=500');}
 async function insertTrade(t){return sbFetch('trades',{method:'POST',headers:{'Prefer':'return=representation'},body:JSON.stringify(toDb(t))});}
 async function updateTrade(t){const body=toDb(t);delete body.id;return sbFetch('trades?id=eq.'+t.id,{method:'PATCH',headers:{'Prefer':'return=representation'},body:JSON.stringify(body)});}
 async function deleteTrade(id){return sbFetch('trades?id=eq.'+id,{method:'DELETE'});}
-function toDb(t){const o={date:t.date,instrument:t.instrument,direction:t.direction,qty:+t.qty,entry_price:+t.entryPrice,exit_price:+t.exitPrice,pnl_gross:+t.pnlGross,pnl_net:+t.pnlNet,commission:+t.commission,duration_min:+t.durationMin,mae:+t.mae,mfe:+t.mfe,setup:t.setup,emotion:t.emotion,note:t.note,rating:+t.rating,source:t.source||'manual',image_path:t.imagePath||null,image_path2:t.imagePath2||null,key_level:t.keyLevel||null,key_level_note:t.keyLevelNote||null,mode:t.mode||'live'};if(currentUser)o.user_id=currentUser.id;return o;}
-function fromDb(r){return{id:r.id,date:r.date,instrument:r.instrument,direction:r.direction,qty:r.qty,entryPrice:r.entry_price,exitPrice:r.exit_price,pnlGross:r.pnl_gross,pnlNet:r.pnl_net,commission:r.commission,durationMin:r.duration_min,mae:r.mae,mfe:r.mfe,setup:r.setup,emotion:r.emotion,note:r.note,rating:r.rating,source:r.source,imagePath:r.image_path||null,imagePath2:r.image_path2||null,keyLevel:r.key_level||null,keyLevelNote:r.key_level_note||'',mode:r.mode||'live'};}
+function toDb(t){const o={date:t.date,instrument:t.instrument,direction:t.direction,qty:+t.qty,entry_price:+t.entryPrice,exit_price:+t.exitPrice,pnl_gross:+t.pnlGross,pnl_net:+t.pnlNet,commission:+t.commission,duration_min:+t.durationMin,mae:+t.mae,mfe:+t.mfe,setup:t.setup,emotion:t.emotion,note:t.note,rating:+t.rating,source:t.source||'manual',image_path:t.imagePath||null,image_path2:t.imagePath2||null,key_level:t.keyLevel||null,key_level_note:t.keyLevelNote||null,mode:t.mode||'live',sl_price:t.slPrice||null,tp_price:t.tpPrice||null,trade_outcome:t.tradeOutcome||null};if(currentUser)o.user_id=currentUser.id;return o;}
+function fromDb(r){return{id:r.id,date:r.date,instrument:r.instrument,direction:r.direction,qty:r.qty,entryPrice:r.entry_price,exitPrice:r.exit_price,pnlGross:r.pnl_gross,pnlNet:r.pnl_net,commission:r.commission,durationMin:r.duration_min,mae:r.mae,mfe:r.mfe,setup:r.setup,emotion:r.emotion,note:r.note,rating:r.rating,source:r.source,imagePath:r.image_path||null,imagePath2:r.image_path2||null,keyLevel:r.key_level||null,keyLevelNote:r.key_level_note||'',mode:r.mode||'live',slPrice:r.sl_price||null,tpPrice:r.tp_price||null,tradeOutcome:r.trade_outcome||null};}
 
 // AUTH
 let authMode='login';
@@ -1004,6 +1013,13 @@ function renderForm(){
   const selEmotion =v('emotion',em);
   const selKeyLevel=v('keyLevel',em);
 
+  const isPlan=formEntryMode==='planned';
+  const hasPlan=!!(v('slPrice',null)||v('tpPrice',null));
+  // If editing a trade that has SL/TP, default to planned mode
+  if(e&&hasPlan&&formEntryMode==='simple') formEntryMode='planned';
+  const storedOutcome=v('tradeOutcome',null);
+  if(e&&storedOutcome&&!plannedOutcome) plannedOutcome=storedOutcome;
+
   return '<div class="form-wrap"><div class="card">'
     +'<div class="card-head" style="border-left:3px solid '+accent+'">'
     +'<div><div class="card-title">'+(e?'Editar Trade':'Nuevo Trade')+'</div>'
@@ -1011,7 +1027,14 @@ function renderForm(){
     +'<button onclick="showView(\'log\')" style="background:none;border:none;color:var(--mid);font-size:18px">&#x2715;</button>'
     +'</div>'
     +'<div class="card-body">'+fxInfo
-    // Row 1
+
+    // ── MODO DE ENTRADA TOGGLE ──────────────────────────────
+    +'<div style="display:flex;gap:0;margin-bottom:18px;background:var(--bg);border:1px solid var(--border2);border-radius:8px;padding:3px;">'
+    +'<button id="fem-simple" onclick="setFormEntryMode(\'simple\')" style="flex:1;padding:7px 12px;border-radius:6px;font-size:11px;font-weight:600;font-family:var(--font);transition:all .15s;cursor:pointer;'+(formEntryMode==='simple'?'background:'+accent+';color:#000;border:1px solid '+accent+';':'background:none;color:var(--mid);border:1px solid transparent;')+'">&#x2699; Modo Simple</button>'
+    +'<button id="fem-planned" onclick="setFormEntryMode(\'planned\')" style="flex:1;padding:7px 12px;border-radius:6px;font-size:11px;font-weight:600;font-family:var(--font);transition:all .15s;cursor:pointer;'+(formEntryMode==='planned'?'background:'+accent+';color:#000;border:1px solid '+accent+';':'background:none;color:var(--mid);border:1px solid transparent;')+'">&#x1F3AF; Modo Planificado</button>'
+    +'</div>'
+
+    // Row 1 — siempre visible
     +'<div class="form-grid-4">'
     +'<div><label>Fecha / Hora</label><input type="datetime-local" id="f-date" value="'+(e?localDateStr(v('date','')):now)+'"></div>'
     +'<div><label>Instrumento</label><select id="f-inst" onchange="onInstChange()">'
@@ -1024,14 +1047,53 @@ function renderForm(){
     +'<button class="dir-btn" id="btn-long" onclick="setDir(\'Long\')" style="border:1px solid '+(!e||v('direction')==='Long'?'var(--green)':'var(--border2)')+';background:'+(!e||v('direction')==='Long'?'var(--green-dim)':'none')+';color:'+(!e||v('direction')==='Long'?'var(--green)':'var(--mid)')+'">Long</button>'
     +'<button class="dir-btn" id="btn-short" onclick="setDir(\'Short\')" style="border:1px solid '+(v('direction')==='Short'?'var(--red)':'var(--border2)')+';background:'+(v('direction')==='Short'?'var(--red-dim)':'none')+';color:'+(v('direction')==='Short'?'var(--red)':'var(--mid)')+'">Short</button>'
     +'</div></div>'
-    +'<div><label id="qty-label">'+qtyLabel+'</label><input type="number" id="f-qty" min="0.01" step="'+qtyStep+'" value="'+v('qty',defQty)+'" oninput="updatePnL()"></div>'
+    +'<div><label id="qty-label">'+qtyLabel+'</label><input type="number" id="f-qty" min="0.01" step="'+qtyStep+'" value="'+v('qty',defQty)+'" oninput="formEntryMode===\'planned\'?updatePlannedPreview():updatePnL()"></div>'
     +'</div>'
-    // Row 2
+
+    // ── PANEL SIMPLE ────────────────────────────────────────
+    +'<div id="form-panel-simple" style="'+(formEntryMode==='planned'?'display:none':'display:block')+'">'
     +'<div class="form-grid-4">'
     +'<div><label>Entry Price</label><input type="number" id="f-entry" step="0.00001" value="'+v('entryPrice','')+'" oninput="updatePnL()"></div>'
     +'<div><label>Exit Price</label><input type="number" id="f-exit" step="0.00001" value="'+v('exitPrice','')+'" oninput="updatePnL()"></div>'
     +'<div><label>Duraci\xF3n (min)</label><input type="number" id="f-dur" value="'+v('durationMin',0)+'"></div>'
     +'<div><label id="comm-label">'+commLabel+'</label><input type="number" id="f-comm" step="0.01" value="'+v('commission',defComm)+'" oninput="updatePnL()"></div>'
+    +'</div>'
+    +'</div>'
+
+    // ── PANEL PLANIFICADO ───────────────────────────────────
+    +'<div id="form-panel-planned" style="'+(formEntryMode==='planned'?'display:block':'display:none')+'">'
+    // Fila 1: Entry, SL, TP, Comisión
+    +'<div class="form-grid-4" style="margin-bottom:0">'
+    +'<div><label>Entry Price</label><input type="number" id="f-entry" step="0.00001" value="'+v('entryPrice','')+'" oninput="updatePlannedPreview()"></div>'
+    +'<div><label style="color:var(--red)">Stop Loss</label><input type="number" id="f-sl" step="0.00001" value="'+v('slPrice','')+'" oninput="updatePlannedPreview()" style="border-color:rgba(230,48,80,.4)"></div>'
+    +'<div><label style="color:var(--green)">Take Profit</label><input type="number" id="f-tp" step="0.00001" value="'+v('tpPrice','')+'" oninput="updatePlannedPreview()" style="border-color:rgba(0,184,122,.4)"></div>'
+    +'<div><label id="comm-label">'+commLabel+'</label><input type="number" id="f-comm" step="0.01" value="'+v('commission',defComm)+'" oninput="updatePlannedPreview()"></div>'
+    +'</div>'
+    // R:R y Riesgo preview
+    +'<div style="display:flex;gap:10px;margin:10px 0 14px;padding:10px 14px;background:var(--bg);border:1px solid var(--border);border-radius:10px;align-items:center;flex-wrap:wrap">'
+    +'<div style="display:flex;align-items:center;gap:6px"><span style="font-size:10px;color:var(--mid)">R:R Planificado</span><span id="planned-rr" style="font-size:14px;font-weight:700;color:var(--blue)">—</span></div>'
+    +'<div style="width:1px;height:20px;background:var(--border)"></div>'
+    +'<div style="display:flex;align-items:center;gap:6px"><span style="font-size:10px;color:var(--mid)">Riesgo máx.</span><span id="planned-risk" style="font-size:14px;font-weight:700">—</span></div>'
+    +'</div>'
+    // Resultado del trade
+    +'<div style="margin-bottom:14px">'
+    +'<div style="font-size:10px;color:var(--mid);letter-spacing:.08em;text-transform:uppercase;margin-bottom:8px">¿Cómo salió el trade?</div>'
+    +'<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px">'
+    +'<button id="po-sl" onclick="setPlannedOutcome(\'sl\')" style="padding:9px 18px;border-radius:8px;font-size:12px;font-weight:700;font-family:var(--font);cursor:pointer;transition:all .15s;border:2px solid var(--red);background:'+(plannedOutcome==='sl'?'var(--red)':'none')+';color:'+(plannedOutcome==='sl'?'#000':'var(--red)')+'">🔴 SL</button>'
+    +'<button id="po-tp" onclick="setPlannedOutcome(\'tp\')" style="padding:9px 18px;border-radius:8px;font-size:12px;font-weight:700;font-family:var(--font);cursor:pointer;transition:all .15s;border:2px solid var(--green);background:'+(plannedOutcome==='tp'?'var(--green)':'none')+';color:'+(plannedOutcome==='tp'?'#000':'var(--green)')+'">🟢 TP</button>'
+    +'<button id="po-be" onclick="setPlannedOutcome(\'be\')" style="padding:9px 18px;border-radius:8px;font-size:12px;font-weight:700;font-family:var(--font);cursor:pointer;transition:all .15s;border:2px solid var(--amber);background:'+(plannedOutcome==='be'?'var(--amber)':'none')+';color:'+(plannedOutcome==='be'?'#000':'var(--amber)')+'">🟡 BE</button>'
+    +'<button id="po-custom" onclick="setPlannedOutcome(\'custom\')" style="padding:9px 18px;border-radius:8px;font-size:12px;font-weight:700;font-family:var(--font);cursor:pointer;transition:all .15s;border:2px solid var(--blue);background:'+(plannedOutcome==='custom'?'var(--blue)':'none')+';color:'+(plannedOutcome==='custom'?'#000':'var(--blue)')+'">🎯 Otro precio</button>'
+    +'</div>'
+    // Custom exit input
+    +'<div id="po-custom-box" style="display:'+(plannedOutcome==='custom'?'block':'none')+';margin-bottom:6px">'
+    +'<label>Precio de salida real</label>'
+    +'<input type="number" id="f-custom-exit" step="0.00001" placeholder="Precio exacto de cierre" value="'+(plannedOutcome==='custom'&&e?v('exitPrice',''):'')+'" oninput="updatePlannedPreview()" style="max-width:200px">'
+    +'</div>'
+    +'<div style="font-size:11px;font-weight:600" id="planned-outcome-label" style="color:var(--dim)">'+(plannedOutcome?{sl:'🔴 Stop Loss',tp:'🟢 Take Profit',be:'🟡 Breakeven',custom:'🎯 Precio custom'}[plannedOutcome]:'Sin resultado aún')+'</div>'
+    +'</div>'
+    // Exit (hidden, filled automatically) + Duración
+    +'<input type="hidden" id="f-exit" value="'+v('exitPrice','')+'">'
+    +'<div style="max-width:200px;margin-bottom:14px"><label>Duración (min)</label><input type="number" id="f-dur" value="'+v('durationMin',0)+'"></div>'
     +'</div>'
     // PnL preview
     +'<div class="pnl-preview" id="pnlPreview" style="'+(e?'':'display:none')+'">'
@@ -1093,6 +1155,96 @@ function renderForm(){
 
 
 let currentDir='Long',currentRating=3;
+let formEntryMode='simple'; // 'simple' | 'planned'
+let plannedOutcome=null; // 'sl'|'tp'|'be'|'custom'
+
+function setFormEntryMode(m){
+  formEntryMode=m;
+  const btnS=document.getElementById('fem-simple'),btnP=document.getElementById('fem-planned');
+  const panelS=document.getElementById('form-panel-simple'),panelP=document.getElementById('form-panel-planned');
+  if(!btnS||!btnP)return;
+  const accent=currentMode==='live'?'var(--green)':'var(--amber)';
+  btnS.style.background=m==='simple'?accent:'none';
+  btnS.style.color=m==='simple'?'#000':'var(--mid)';
+  btnS.style.borderColor=m==='simple'?accent:'var(--border2)';
+  btnP.style.background=m==='planned'?accent:'none';
+  btnP.style.color=m==='planned'?'#000':'var(--mid)';
+  btnP.style.borderColor=m==='planned'?accent:'var(--border2)';
+  if(panelS)panelS.style.display=m==='simple'?'block':'none';
+  if(panelP)panelP.style.display=m==='planned'?'block':'none';
+  if(m==='simple'){plannedOutcome=null;updatePnL();}
+  else{updatePlannedPreview();}
+}
+
+function setPlannedOutcome(o){
+  plannedOutcome=o;
+  ['sl','tp','be','custom'].forEach(x=>{
+    const btn=document.getElementById('po-'+x);if(!btn)return;
+    const cols={sl:'var(--red)',tp:'var(--green)',be:'var(--amber)',custom:'var(--blue)'};
+    const active=x===o;
+    btn.style.background=active?cols[x]:'none';
+    btn.style.color=active?'#000':cols[x];
+    btn.style.borderColor=cols[x];
+  });
+  const customBox=document.getElementById('po-custom-box');
+  if(customBox)customBox.style.display=o==='custom'?'block':'none';
+  updatePlannedPreview();
+}
+
+function updatePlannedPreview(){
+  const inst=document.getElementById('f-inst')?.value||'MNQ';
+  const entry=numVal('f-entry')||0;
+  const sl=numVal('f-sl')||0;
+  const tp=numVal('f-tp')||0;
+  const qty=numVal('f-qty')||1;
+  const comm=numVal('f-comm')||0;
+  if(!entry)return;
+
+  // Calculate planned R:R
+  const rr=(entry&&sl&&tp&&sl!==entry)
+    ?Math.abs(tp-entry)/Math.abs(sl-entry)
+    :null;
+  const rrEl=document.getElementById('planned-rr');
+  if(rrEl)rrEl.textContent=rr?'1:'+rr.toFixed(2):'—';
+
+  // Calculate risk in $
+  let riskResult=null;
+  if(entry&&sl){
+    riskResult=calcResult(inst,entry,sl,qty,currentDir);
+  }
+  const riskEl=document.getElementById('planned-risk');
+  if(riskEl&&riskResult){
+    const fx=isFx(inst),fxFut=isFxFuture(inst);
+    const totalComm=fx&&!fxFut?comm:qty*2*comm;
+    const riskAmt=Math.abs(riskResult.gross)+totalComm;
+    riskEl.textContent='-$'+riskAmt.toFixed(2);
+    riskEl.style.color='var(--red)';
+  } else if(riskEl){riskEl.textContent='—';}
+
+  // Determine exit price based on outcome
+  let exitPrice=null;
+  if(plannedOutcome==='sl'&&sl) exitPrice=sl;
+  else if(plannedOutcome==='tp'&&tp) exitPrice=tp;
+  else if(plannedOutcome==='be'&&entry) exitPrice=entry;
+  else if(plannedOutcome==='custom'){
+    const cp=numVal('f-custom-exit')||0;
+    if(cp) exitPrice=cp;
+  }
+
+  // Mirror exit to the simple exit field so submitForm works
+  const exitFld=document.getElementById('f-exit');
+  if(exitFld&&exitPrice) exitFld.value=exitPrice;
+
+  if(exitPrice) updatePnL();
+
+  // Show planned outcome badge
+  const badgeEl=document.getElementById('planned-outcome-label');
+  if(badgeEl){
+    const labels={sl:'🔴 Stop Loss',tp:'🟢 Take Profit',be:'🟡 Breakeven',custom:'🎯 Precio custom'};
+    badgeEl.textContent=plannedOutcome?labels[plannedOutcome]:'Sin resultado aún';
+    badgeEl.style.color=plannedOutcome?{sl:'var(--red)',tp:'var(--green)',be:'var(--amber)',custom:'var(--blue)'}[plannedOutcome]:'var(--dim)';
+  }
+}
 function setDir(d){currentDir=d;['Long','Short'].forEach(x=>{const btn=document.getElementById('btn-'+x.toLowerCase());if(!btn)return;const active=d===x,col=x==='Long'?'var(--green)':'var(--red)',dim=x==='Long'?'var(--green-dim)':'var(--red-dim)';btn.style.border='1px solid '+(active?col:'var(--border2)');btn.style.background=active?dim:'none';btn.style.color=active?col:'var(--mid)';});updatePnL();}
 function setRating(r){currentRating=r;document.getElementById('ratingLabel').textContent=['','Muy malo','Malo','Regular','Bueno','Perfecto'][r];[1,2,3,4,5].forEach(i=>{const btn=document.getElementById('star-'+i);if(!btn)return;btn.style.borderColor=i<=r?'var(--amber)':'var(--border2)';btn.style.background=i<=r?'rgba(255,179,64,.15)':'none';btn.style.color=i<=r?'var(--amber)':'var(--dim)';});}
 function onInstChange(){
@@ -1148,7 +1300,10 @@ function onPnlRealEdit(){const ri=document.getElementById('f-pnl-real');if(!ri)r
 let _isSaving=false;
 async function submitForm(){
   if(_isSaving)return;
-  const entry=numVal('f-entry');const exit=numVal('f-exit');
+  const entry=numVal('f-entry');
+  // In planned mode, ensure an outcome was selected
+  if(formEntryMode==='planned'&&!plannedOutcome){alert('Selecciona el resultado del trade (SL, TP, BE o Precio custom)');return;}
+  const exit=numVal('f-exit');
   if(!entry||!exit){alert('Ingresa precio de entrada y salida');return;}
   _isSaving=true;
   const inst=document.getElementById('f-inst').value;const qty=numVal('f-qty')||1;const comm=numVal('f-comm')||0;
@@ -1196,7 +1351,10 @@ async function submitForm(){
   imagePath,
   imagePath2:editingTrade?.imagePath2||null,
 
-  mode:currentMode
+  mode:currentMode,
+  slPrice:formEntryMode==='planned'?(numVal('f-sl')||null):null,
+  tpPrice:formEntryMode==='planned'?(numVal('f-tp')||null):null,
+  tradeOutcome:formEntryMode==='planned'?plannedOutcome:null,
 };
     let savedTrade;
     if(editingTrade){await updateTrade(trade);savedTrade=trade;trades=trades.map(t=>t.id===trade.id?trade:t);}
@@ -1206,10 +1364,10 @@ async function submitForm(){
     }
     if(pendingImageFile){setUploadProgress(10);if(btn)btn.textContent='Subiendo imagen 1...';const path=await uploadTradeImage(pendingImageFile,savedTrade.id);setUploadProgress(45);savedTrade.imagePath=path;await updateTrade({...savedTrade});trades=trades.map(t=>t.id===savedTrade.id?{...t,imagePath:path}:t);}if(pendingImageFile2){setUploadProgress(55);if(btn)btn.textContent='Subiendo imagen 2...';const path2=await uploadTradeImage(pendingImageFile2,savedTrade.id+'_end');setUploadProgress(88);savedTrade.imagePath2=path2;await updateTrade({...savedTrade});trades=trades.map(t=>t.id===savedTrade.id?{...t,imagePath2:path2}:t);}setUploadProgress(100);if(editingTrade&&editingTrade._removeImage&&editingTrade.imagePath)await deleteTradeImage(editingTrade.imagePath);if(editingTrade&&editingTrade._removeImage2&&editingTrade.imagePath2)await deleteTradeImage(editingTrade.imagePath2);
     showToast(editingTrade?'Trade actualizado ✓':'Trade guardado ✓',currentMode==='bt'?'var(--amber)':undefined);
-    formCRTStates={};editingTrade=null;pendingImageFile=null;_isSaving=false;showView('log');
+    formCRTStates={};editingTrade=null;pendingImageFile=null;_isSaving=false;formEntryMode='simple';plannedOutcome=null;showView('log');
   }catch(e){alert('Error: '+e.message);if(btn){btn.textContent=editingTrade?'ACTUALIZAR':'GUARDAR TRADE';btn.disabled=false;}_isSaving=false;}
 }
-function editTrade(id){editingTrade=trades.find(t=>t.id==id)||null;if(editingTrade){currentDir=editingTrade.direction;currentRating=editingTrade.rating||3;}formCRTStates={};pendingImageFile=null;pendingImageFile2=null;showView('new');}
+function editTrade(id){editingTrade=trades.find(t=>t.id==id)||null;if(editingTrade){currentDir=editingTrade.direction;currentRating=editingTrade.rating||3;}formCRTStates={};pendingImageFile=null;pendingImageFile2=null;formEntryMode=editingTrade&&(editingTrade.slPrice||editingTrade.tpPrice)?'planned':'simple';plannedOutcome=editingTrade?.tradeOutcome||null;showView('new');}
 async function confirmDelete(id){if(!confirm('¿Eliminar este trade?'))return;const trade=trades.find(t=>t.id==id);try{if(trade?.imagePath)await deleteTradeImage(trade.imagePath);await deleteTrade(id);trades=trades.filter(t=>t.id!=id);showToast('Trade eliminado');render();}catch(e){alert('Error: '+e.message);}}
 
 // ─── CRT ───────────────────────────────────────────────────────
@@ -1310,7 +1468,7 @@ function drawEquity(trs){
   ctx.strokeStyle=lc;ctx.lineWidth=1;ctx.globalAlpha=0.25;ctx.stroke();ctx.globalAlpha=1;
 }
 
-function drawMAE(trs){const cv=document.getElementById('maeCanvas');if(!cv)return;const dpr=window.devicePixelRatio||1,W=cv.offsetWidth,H=160;cv.width=W*dpr;cv.height=H*dpr;const ctx=cv.getContext('2d');ctx.scale(dpr,dpr);const pad={t:8,r:8,b:16,l:26},cW=W-pad.l-pad.r,cH=H-pad.t-pad.b;const maxMFE=Math.max(...trs.map(t=>t.mfe||0),1),maxMAE=Math.max(...trs.map(t=>t.mae||0),1);const isDarkMAE=document.body.classList.contains('dark');for(let i=0;i<=3;i++){ctx.strokeStyle=isDarkMAE?'rgba(255,255,255,.06)':'rgba(0,0,0,.06)';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(pad.l,pad.t+cH/3*i);ctx.lineTo(W-pad.r,pad.t+cH/3*i);ctx.stroke();}trs.forEach(t=>{const x=pad.l+((t.mfe||0)/maxMFE)*cW,y=pad.t+cH-((t.mae||0)/maxMAE)*cH;ctx.beginPath();ctx.arc(x,y,3,0,Math.PI*2);ctx.fillStyle=t.pnlNet>0?'rgba(0,184,122,.6)':'rgba(230,48,80,.55)';ctx.fill();});ctx.fillStyle='#94a3b8';ctx.font='8px DM Mono,monospace';ctx.textAlign='center';ctx.fillText('MFE →',pad.l+cW/2,H-2);ctx.save();ctx.translate(9,pad.t+cH/2);ctx.rotate(-Math.PI/2);ctx.fillText('MAE →',0,0);ctx.restore();}
+function drawMAE(trs){const cv=document.getElementById('maeCanvas');if(!cv)return;const dpr=window.devicePixelRatio||1,W=cv.offsetWidth,H=160;cv.width=W*dpr;cv.height=H*dpr;const ctx=cv.getContext('2d');ctx.scale(dpr,dpr);const pad={t:8,r:8,b:16,l:26},cW=W-pad.l-pad.r,cH=H-pad.t-pad.b;const maxMFE=Math.max(...trs.map(t=>t.mfe||0),1),maxMAE=Math.max(...trs.map(t=>t.mae||0),1);for(let i=0;i<=3;i++){ctx.strokeStyle='#e2e8f0';ctx.lineWidth=1;ctx.beginPath();ctx.moveTo(pad.l,pad.t+cH/3*i);ctx.lineTo(W-pad.r,pad.t+cH/3*i);ctx.stroke();}trs.forEach(t=>{const x=pad.l+((t.mfe||0)/maxMFE)*cW,y=pad.t+cH-((t.mae||0)/maxMAE)*cH;ctx.beginPath();ctx.arc(x,y,3,0,Math.PI*2);ctx.fillStyle=t.pnlNet>0?'rgba(0,184,122,.6)':'rgba(230,48,80,.55)';ctx.fill();});ctx.fillStyle='#94a3b8';ctx.font='8px DM Mono,monospace';ctx.textAlign='center';ctx.fillText('MFE →',pad.l+cW/2,H-2);ctx.save();ctx.translate(9,pad.t+cH/2);ctx.rotate(-Math.PI/2);ctx.fillText('MAE →',0,0);ctx.restore();}
 
 function attachEvents(){
   setTimeout(()=>{
@@ -1480,6 +1638,16 @@ function renderTradeModal(trs){
     +'<div class="tm-ctx-row"><span style="color:var(--mid)">Setup</span><span style="font-weight:600">'+(t.setup||'\u2014')+'</span></div>'
     +'<div class="tm-ctx-row"><span style="color:var(--mid)">Key Level</span><span>'+kl+'</span></div>'
     +'<div class="tm-ctx-row"><span style="color:var(--mid)">Emoci\xF3n</span><span style="font-weight:600">'+emoStr+'</span></div>'
+    +(t.slPrice||t.tpPrice?
+      '<div class="tm-ctx-row"><span style="color:var(--mid)">Stop Loss</span><span style="color:var(--red);font-weight:600">'+(t.slPrice||'\u2014')+'</span></div>'
+     +'<div class="tm-ctx-row"><span style="color:var(--mid)">Take Profit</span><span style="color:var(--green);font-weight:600">'+(t.tpPrice||'\u2014')+'</span></div>'
+     +(t.tradeOutcome?'<div class="tm-ctx-row"><span style="color:var(--mid)">Resultado</span><span style="font-weight:700;color:'
+       +{sl:'var(--red)',tp:'var(--green)',be:'var(--amber)',custom:'var(--blue)'}[t.tradeOutcome]+'}">'
+       +{sl:'🔴 Stop Loss',tp:'🟢 Take Profit',be:'🟡 Breakeven',custom:'🎯 Precio custom'}[t.tradeOutcome]+'</span></div>':'')
+     +(t.slPrice&&t.tpPrice&&t.entryPrice?
+       '<div class="tm-ctx-row"><span style="color:var(--mid)">R:R plan.</span><span style="font-weight:600;color:var(--blue)">'
+       +'1:'+(Math.abs(t.tpPrice-t.entryPrice)/Math.abs(t.slPrice-t.entryPrice)).toFixed(2)+'</span></div>':'')
+    :'')
     +'<div class="tm-ctx-row"><span style="color:var(--mid)">Modo</span><span>'+modeLabel()+'</span></div>'
     +'</div></div></div>';
   panel.innerHTML=html;
