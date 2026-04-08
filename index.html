@@ -533,7 +533,7 @@ function setUploadProgress(pct){const bar=document.getElementById('uploadBar'),w
 // SUPABASE
 async function sbFetch(path,opts){opts=opts||{};var r=await fetch(SB_URL+'/rest/v1/'+path,Object.assign({},opts,{headers:Object.assign({},HEADERS,opts.headers||{})}));if(r.status===401){var ok=await refreshSession();if(ok){r=await fetch(SB_URL+'/rest/v1/'+path,Object.assign({},opts,{headers:Object.assign({},HEADERS,opts.headers||{})}));}else{currentUser=null;setAuthToken(null,null);localStorage.removeItem('tradelog-session');document.getElementById('authScreen').style.display='flex';throw new Error('Sesión expirada. Inicia sesión nuevamente.');}}if(!r.ok)throw new Error(await r.text());return r.status===204?null:r.json();}
 async function loadTrades(){return sbFetch('trades?order=date.desc&limit=500');}
-async function insertTrade(t){return sbFetch('trades',{method:'POST',headers:{'Prefer':'return=representation','Resolution':'merge-duplicates'},body:JSON.stringify(toDb(t))});}
+async function insertTrade(t){return sbFetch('trades',{method:'POST',headers:{'Prefer':'return=representation'},body:JSON.stringify(toDb(t))});}
 async function updateTrade(t){const body=toDb(t);delete body.id;return sbFetch('trades?id=eq.'+t.id,{method:'PATCH',headers:{'Prefer':'return=representation'},body:JSON.stringify(body)});}
 async function deleteTrade(id){return sbFetch('trades?id=eq.'+id,{method:'DELETE'});}
 function toDb(t){const o={date:t.date,instrument:t.instrument,direction:t.direction,qty:+t.qty,entry_price:+t.entryPrice,exit_price:+t.exitPrice,pnl_gross:+t.pnlGross,pnl_net:+t.pnlNet,commission:+t.commission,duration_min:+t.durationMin,mae:+t.mae,mfe:+t.mfe,setup:t.setup,emotion:t.emotion,note:t.note,rating:+t.rating,source:t.source||'manual',image_path:t.imagePath||null,image_path2:t.imagePath2||null,key_level:t.keyLevel||null,key_level_note:t.keyLevelNote||null,mode:t.mode||'live'};if(currentUser)o.user_id=currentUser.id;return o;}
@@ -1174,7 +1174,25 @@ async function submitForm(){
     const trade={id:editingTrade?editingTrade.id:undefined,date:toLocalISO(new Date(document.getElementById('f-date').value)),instrument:inst,direction:currentDir,qty,entryPrice:entry,exitPrice:exit,pnlGross:+pnlGross.toFixed(2),pnlNet:+pnlNet.toFixed(2),commission:+totalComm.toFixed(2),durationMin:numVal('f-dur')||0,mae:numVal('f-mae')||0,mfe:numVal('f-mfe')||0,setup:document.getElementById('f-setup').value,emotion:document.getElementById('f-emotion').value,keyLevel:document.getElementById('f-keylevel')?.value||null,keyLevelNote:document.getElementById('f-keylevel-note')?.value||'',note:fullNote,rating:currentRating,source:'manual',imagePath,imagePath2:editingTrade?.imagePath2||null,mode:currentMode};
     let savedTrade;
     if(editingTrade){await updateTrade(trade);savedTrade=trade;trades=trades.map(t=>t.id===trade.id?trade:t);}
-    else{let saved;try{[saved]=await insertTrade(trade);}catch(ie){if((ie.message||"").includes("23505")||(ie.message||"").includes("duplicate key")){showToast("⚠️ Trade ya guardado","var(--amber)");formCRTStates={};editingTrade=null;pendingImageFile=null;showView("log");return;}throw ie;}savedTrade=fromDb(saved);trades=[savedTrade,...trades];}
+    else{
+      // Auto-offset fecha si ya existe un trade con esa fecha exacta (evita error UNIQUE en BD)
+      let baseDate=new Date(trade.date);
+      let offset=0;
+      while(trades.some(t=>t.date===trade.date)){
+        offset++;
+        trade=Object.assign({},trade,{date:toLocalISO(new Date(baseDate.getTime()+offset*1000))});
+      }
+      let saved;
+      try{[saved]=await insertTrade(trade);}
+      catch(ie){
+        if((ie.message||"").includes("23505")||(ie.message||"").includes("duplicate key")){
+          // Fallback: un segundo adicional si la BD aún colisiona
+          trade=Object.assign({},trade,{date:toLocalISO(new Date(baseDate.getTime()+(offset+1)*1000))});
+          [saved]=await insertTrade(trade);
+        }else{throw ie;}
+      }
+      savedTrade=fromDb(saved);trades=[savedTrade,...trades];
+    }
     if(pendingImageFile){setUploadProgress(10);if(btn)btn.textContent='Subiendo imagen 1...';const path=await uploadTradeImage(pendingImageFile,savedTrade.id);setUploadProgress(45);savedTrade.imagePath=path;await updateTrade({...savedTrade});trades=trades.map(t=>t.id===savedTrade.id?{...t,imagePath:path}:t);}if(pendingImageFile2){setUploadProgress(55);if(btn)btn.textContent='Subiendo imagen 2...';const path2=await uploadTradeImage(pendingImageFile2,savedTrade.id+'_end');setUploadProgress(88);savedTrade.imagePath2=path2;await updateTrade({...savedTrade});trades=trades.map(t=>t.id===savedTrade.id?{...t,imagePath2:path2}:t);}setUploadProgress(100);if(editingTrade&&editingTrade._removeImage&&editingTrade.imagePath)await deleteTradeImage(editingTrade.imagePath);if(editingTrade&&editingTrade._removeImage2&&editingTrade.imagePath2)await deleteTradeImage(editingTrade.imagePath2);
     showToast(editingTrade?'Trade actualizado ✓':'Trade guardado ✓',currentMode==='bt'?'var(--amber)':undefined);
     formCRTStates={};editingTrade=null;pendingImageFile=null;showView('log');
