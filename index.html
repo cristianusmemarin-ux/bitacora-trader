@@ -1175,37 +1175,17 @@ async function submitForm(){
     let imagePath=editingTrade?.imagePath||null;
     if(editingTrade?._removeImage&&imagePath){await deleteTradeImage(imagePath);imagePath=null;}
     const trade = {
-  ...(editingTrade && { id: editingTrade.id }), // ✅ SOLO si estás editando
-
+  ...(editingTrade && { id: editingTrade.id }),
   date: toLocalISO(new Date(document.getElementById('f-date').value)),
   instrument: inst,
   direction: currentDir,
   qty,
   entryPrice: entry,
   exitPrice: exit,
-
-  pnlGross: +pnlGross.toFixed(2),
-  pnlNet: +pnlNet.toFixed(2),
-  commission: +totalComm.toFixed(2),
-
-  durationMin: numVal('f-dur') || 0,
-  mae: numVal('f-mae') || 0,
-  mfe: numVal('f-mfe') || 0,
-
-  setup: document.getElementById('f-setup').value,
-  emotion: document.getElementById('f-emotion').value,
-
-  keyLevel: document.getElementById('f-keylevel')?.value || null,
-  keyLevelNote: document.getElementById('f-keylevel-note')?.value || '',
-
-  note: fullNote,
-  rating: currentRating,
-  source: 'manual',
-
-  imagePath,
-  imagePath2: editingTrade?.imagePath2 || null,
-
-  mode: currentMode
+  pnlGross,
+  commission,
+  pnlNet,
+  note
 };
     let savedTrade;
     if(editingTrade){await updateTrade(trade);savedTrade=trade;trades=trades.map(t=>t.id===trade.id?trade:t);}
