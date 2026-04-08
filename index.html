@@ -1154,9 +1154,12 @@ function updatePnL(){
 }
 function onPnlRealEdit(){const ri=document.getElementById('f-pnl-real');if(!ri)return;ri.dataset.edited='1';const inst=document.getElementById('f-inst')?.value||'MNQ';const entry=numVal('f-entry')||0;const exit=numVal('f-exit')||0;const qty=numVal('f-qty')||1;const comm=numVal('f-comm')||0;const pnlReal=+ri.value;if(!entry||!exit||!pnlReal)return;const fx=isFx(inst),fxFut=isFxFuture(inst),r=calcResult(inst,entry,exit,qty,currentDir);if(!r)return;const totalComm=fx&&!fxFut?comm:qty*2*comm,gross=pnlReal+totalComm;const units=r.pips!==undefined?r.pips:r.ticks;const info=document.getElementById('pip-val-info'),disp=document.getElementById('pip-val-display');if(info&&disp&&units!==0){disp.textContent='$'+(Math.abs(gross/units)).toFixed(4)+' por '+r.unit;info.style.display='block';}const set=(id,val,col)=>{const el=document.getElementById(id);if(el){el.textContent=val;if(col)el.style.color=col;}};set('p-net',fmt(pnlReal),pnlReal>=0?'var(--green)':'var(--red)');set('p-gross',fmt(gross),gross>=0?'var(--green)':'var(--red)');}
 
+let _isSaving=false;
 async function submitForm(){
+  if(_isSaving)return;
   const entry=numVal('f-entry');const exit=numVal('f-exit');
   if(!entry||!exit){alert('Ingresa precio de entrada y salida');return;}
+  _isSaving=true;
   const inst=document.getElementById('f-inst').value;const qty=numVal('f-qty')||1;const comm=numVal('f-comm')||0;
   const fx=isFx(inst),fxFut=isFxFuture(inst),r=calcResult(inst,entry,exit,qty,currentDir);
   const totalComm=fx&&!fxFut?comm:qty*2*comm;
@@ -1171,38 +1174,17 @@ async function submitForm(){
   try{
     let imagePath=editingTrade?.imagePath||null;
     if(editingTrade?._removeImage&&imagePath){await deleteTradeImage(imagePath);imagePath=null;}
-    const trade={id:editingTrade?editingTrade.id:undefined,date:toLocalISO(new Date(document.getElementById('f-date').value)),instrument:inst,direction:currentDir,qty,entryPrice:entry,exitPrice:exit,pnlGross:+pnlGross.toFixed(2),pnlNet:+pnlNet.toFixed(2),commission:+totalComm.toFixed(2),durationMin:numVal('f-dur')||0,mae:numVal('f-mae')||0,mfe:numVal('f-mfe')||0,setup:document.getElementById('f-setup').value,emotion:document.getElementById('f-emotion').value,keyLevel:document.getElementById('f-keylevel')?.value||null,keyLevelNote:document.getElementById('f-keylevel-note')?.value||'',note:fullNote,rating:currentRating,source:'manual',imagePath,imagePath2:editingTrade?.imagePath2||null,mode:currentMode};
+    const trade={id:editingTrade?editingTrade.id:null,date:toLocalISO(new Date(document.getElementById('f-date').value)),instrument:inst,direction:currentDir,qty,entryPrice:entry,exitPrice:exit,pnlGross:+pnlGross.toFixed(2),pnlNet:+pnlNet.toFixed(2),commission:+totalComm.toFixed(2),durationMin:numVal('f-dur')||0,mae:numVal('f-mae')||0,mfe:numVal('f-mfe')||0,setup:document.getElementById('f-setup').value,emotion:document.getElementById('f-emotion').value,keyLevel:document.getElementById('f-keylevel')?.value||null,keyLevelNote:document.getElementById('f-keylevel-note')?.value||'',note:fullNote,rating:currentRating,source:'manual',imagePath,imagePath2:editingTrade?.imagePath2||null,mode:currentMode};
     let savedTrade;
     if(editingTrade){await updateTrade(trade);savedTrade=trade;trades=trades.map(t=>t.id===trade.id?trade:t);}
     else{
-      // Auto-offset fecha si ya existe un trade con esa fecha exacta (evita error UNIQUE en BD)
-      let baseDate=new Date(trade.date);
-      let offset=0;
-      while(trades.some(t=>t.date===trade.date)){
-        offset++;
-        trade=Object.assign({},trade,{date:toLocalISO(new Date(baseDate.getTime()+offset*1000))});
-      }
-      let saved;
-      const MAX_RETRIES=20;
-      let inserted=false;
-      while(!inserted){
-        try{
-          [saved]=await insertTrade(trade);
-          inserted=true;
-        }catch(ie){
-          if(((ie.message||"").includes("23505")||(ie.message||"").includes("duplicate key"))&&offset<MAX_RETRIES){
-            // La BD tiene colisión de fecha que no está en memoria local — incrementar y reintentar
-            offset++;
-            trade=Object.assign({},trade,{date:toLocalISO(new Date(baseDate.getTime()+offset*1000))});
-          }else{throw ie;}
-        }
-      }
+      const [saved]=await insertTrade(trade);
       savedTrade=fromDb(saved);trades=[savedTrade,...trades];
     }
     if(pendingImageFile){setUploadProgress(10);if(btn)btn.textContent='Subiendo imagen 1...';const path=await uploadTradeImage(pendingImageFile,savedTrade.id);setUploadProgress(45);savedTrade.imagePath=path;await updateTrade({...savedTrade});trades=trades.map(t=>t.id===savedTrade.id?{...t,imagePath:path}:t);}if(pendingImageFile2){setUploadProgress(55);if(btn)btn.textContent='Subiendo imagen 2...';const path2=await uploadTradeImage(pendingImageFile2,savedTrade.id+'_end');setUploadProgress(88);savedTrade.imagePath2=path2;await updateTrade({...savedTrade});trades=trades.map(t=>t.id===savedTrade.id?{...t,imagePath2:path2}:t);}setUploadProgress(100);if(editingTrade&&editingTrade._removeImage&&editingTrade.imagePath)await deleteTradeImage(editingTrade.imagePath);if(editingTrade&&editingTrade._removeImage2&&editingTrade.imagePath2)await deleteTradeImage(editingTrade.imagePath2);
     showToast(editingTrade?'Trade actualizado ✓':'Trade guardado ✓',currentMode==='bt'?'var(--amber)':undefined);
-    formCRTStates={};editingTrade=null;pendingImageFile=null;showView('log');
-  }catch(e){alert('Error: '+e.message);if(btn){btn.textContent=editingTrade?'ACTUALIZAR':'GUARDAR TRADE';btn.disabled=false;}}
+    formCRTStates={};editingTrade=null;pendingImageFile=null;_isSaving=false;showView('log');
+  }catch(e){alert('Error: '+e.message);if(btn){btn.textContent=editingTrade?'ACTUALIZAR':'GUARDAR TRADE';btn.disabled=false;}_isSaving=false;}
 }
 function editTrade(id){editingTrade=trades.find(t=>t.id==id)||null;if(editingTrade){currentDir=editingTrade.direction;currentRating=editingTrade.rating||3;}formCRTStates={};pendingImageFile=null;pendingImageFile2=null;showView('new');}
 async function confirmDelete(id){if(!confirm('¿Eliminar este trade?'))return;const trade=trades.find(t=>t.id==id);try{if(trade?.imagePath)await deleteTradeImage(trade.imagePath);await deleteTrade(id);trades=trades.filter(t=>t.id!=id);showToast('Trade eliminado');render();}catch(e){alert('Error: '+e.message);}}
