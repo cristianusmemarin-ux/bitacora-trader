@@ -1183,13 +1183,19 @@ async function submitForm(){
         trade=Object.assign({},trade,{date:toLocalISO(new Date(baseDate.getTime()+offset*1000))});
       }
       let saved;
-      try{[saved]=await insertTrade(trade);}
-      catch(ie){
-        if((ie.message||"").includes("23505")||(ie.message||"").includes("duplicate key")){
-          // Fallback: un segundo adicional si la BD aún colisiona
-          trade=Object.assign({},trade,{date:toLocalISO(new Date(baseDate.getTime()+(offset+1)*1000))});
+      const MAX_RETRIES=20;
+      let inserted=false;
+      while(!inserted){
+        try{
           [saved]=await insertTrade(trade);
-        }else{throw ie;}
+          inserted=true;
+        }catch(ie){
+          if(((ie.message||"").includes("23505")||(ie.message||"").includes("duplicate key"))&&offset<MAX_RETRIES){
+            // La BD tiene colisión de fecha que no está en memoria local — incrementar y reintentar
+            offset++;
+            trade=Object.assign({},trade,{date:toLocalISO(new Date(baseDate.getTime()+offset*1000))});
+          }else{throw ie;}
+        }
       }
       savedTrade=fromDb(saved);trades=[savedTrade,...trades];
     }
