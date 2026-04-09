@@ -1079,7 +1079,7 @@ function renderForm(){
     +'<div><label>Entry Price</label><input type="number" id="f-entry" step="0.00001" value="'+v('entryPrice','')+'" oninput="updatePnL()"></div>'
     +'<div><label>Exit Price</label><input type="number" id="f-exit" step="0.00001" value="'+v('exitPrice','')+'" oninput="updatePnL()"></div>'
     +'<div><label>Duraci\xF3n (min)</label><input type="number" id="f-dur" value="'+v('durationMin',0)+'"></div>'
-    +'<div><label id="comm-label">'+commLabel+'</label><input type="number" id="f-comm" step="0.01" value="'+v('commission',defComm)+'" oninput="updatePnL()"></div>'
+    +'<div><label id="comm-label">'+commLabel+'</label><input type="number" id="f-comm" step="0.01" value="'+(e?v('commission',defComm):defComm)+'" oninput="updatePnL()"></div>'
     +'</div>'
     +'</div>'
 
@@ -1278,11 +1278,17 @@ function onInstChange(){
   const commLabelTxt=fxFut?'Comisión/contrato':fx?'Comisión (trade)':'Comisión/contrato';
   if(cl)cl.textContent=commLabelTxt;
   if(clp)clp.textContent=commLabelTxt;
-  const qi=document.getElementById('f-qty');if(qi){qi.step=fx&&!fxFut?'0.01':'1';qi.value=fx&&!fxFut?'0.10':'1';}
-  const commVal=fxFut?'5':fx?'7':'0.62';
-  const ci=document.getElementById('f-comm');if(ci)ci.value=commVal;
-  const cip=document.getElementById('f-comm-p');if(cip)cip.value=commVal;
   const tl=document.getElementById('p-ticks-label');if(tl)tl.textContent=(fx||fxFut)?'Pips':'Ticks';
+  // Only reset commission and qty defaults when creating a NEW trade, not when editing
+  if(!editingTrade){
+    const qi=document.getElementById('f-qty');if(qi){qi.step=fx&&!fxFut?'0.01':'1';qi.value=fx&&!fxFut?'0.10':'1';}
+    const commVal=fxFut?'5':fx?'7':'0.62';
+    const ci=document.getElementById('f-comm');if(ci)ci.value=commVal;
+    const cip=document.getElementById('f-comm-p');if(cip)cip.value=commVal;
+  } else {
+    // Only update step/type for qty input, keep the saved value
+    const qi=document.getElementById('f-qty');if(qi)qi.step=fx&&!fxFut?'0.01':'1';
+  }
   // Update info box if present
   const ib=document.getElementById('fxFutInfo');
   if(ib){if(fxFut){ib.style.display='block';ib.textContent='📋 '+inst+' = '+FX_FUTURES_SPECS[inst].name+' · Tamaño: '+FX_FUTURES_SPECS[inst].size.toLocaleString()+' · Pip: $'+FX_FUTURES_SPECS[inst].pipVal+'/pip/contrato';}else ib.style.display='none';}
