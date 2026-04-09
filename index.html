@@ -1087,10 +1087,10 @@ function renderForm(){
     +'<div id="form-panel-planned" style="'+(formEntryMode==='planned'?'display:block':'display:none')+'">'
     // Fila 1: Entry, SL, TP, Comisión
     +'<div class="form-grid-4" style="margin-bottom:0">'
-    +'<div><label>Entry Price</label><input type="number" id="f-entry" step="0.00001" value="'+v('entryPrice','')+'" oninput="updatePlannedPreview()"></div>'
+    +'<div><label>Entry Price</label><input type="number" id="f-entry-p" step="0.00001" value="'+v('entryPrice','')+'" oninput="updatePlannedPreview()"></div>'
     +'<div><label style="color:var(--red)">Stop Loss</label><input type="number" id="f-sl" step="0.00001" value="'+v('slPrice','')+'" oninput="updatePlannedPreview()" style="border-color:rgba(230,48,80,.4)"></div>'
     +'<div><label style="color:var(--green)">Take Profit</label><input type="number" id="f-tp" step="0.00001" value="'+v('tpPrice','')+'" oninput="updatePlannedPreview()" style="border-color:rgba(0,184,122,.4)"></div>'
-    +'<div><label id="comm-label">'+commLabel+'</label><input type="number" id="f-comm" step="0.01" value="'+v('commission',defComm)+'" oninput="updatePlannedPreview()"></div>'
+    +'<div><label id="comm-label-p">'+commLabel+'</label><input type="number" id="f-comm-p" step="0.01" value="'+v('commission',defComm)+'" oninput="updatePlannedPreview()"></div>'
     +'</div>'
     // R:R y Riesgo preview
     +'<div style="display:flex;gap:10px;margin:10px 0 14px;padding:10px 14px;background:var(--bg);border:1px solid var(--border);border-radius:10px;align-items:center;flex-wrap:wrap">'
@@ -1216,11 +1216,11 @@ function setPlannedOutcome(o){
 
 function updatePlannedPreview(){
   const inst=document.getElementById('f-inst')?.value||'MNQ';
-  const entry=numVal('f-entry')||0;
+  const entry=numVal('f-entry-p')||0;
   const sl=numVal('f-sl')||0;
   const tp=numVal('f-tp')||0;
   const qty=numVal('f-qty')||1;
-  const comm=numVal('f-comm')||0;
+  const comm=numVal('f-comm-p')||0;
   if(!entry)return;
 
   // Calculate planned R:R
@@ -1273,11 +1273,15 @@ function setRating(r){currentRating=r;document.getElementById('ratingLabel').tex
 function onInstChange(){
   const inst=document.getElementById('f-inst')?.value||'MNQ';
   const fx=isFx(inst),fxFut=isFxFuture(inst);
-  const ql=document.getElementById('qty-label'),cl=document.getElementById('comm-label');
+  const ql=document.getElementById('qty-label'),cl=document.getElementById('comm-label'),clp=document.getElementById('comm-label-p');
   if(ql)ql.textContent=fxFut?'Contratos (FX Fut)':fx?'Lotes (MT5)':'Contratos';
-  if(cl)cl.textContent=fxFut?'Comisión/contrato':fx?'Comisión (trade)':'Comisión/contrato';
+  const commLabelTxt=fxFut?'Comisión/contrato':fx?'Comisión (trade)':'Comisión/contrato';
+  if(cl)cl.textContent=commLabelTxt;
+  if(clp)clp.textContent=commLabelTxt;
   const qi=document.getElementById('f-qty');if(qi){qi.step=fx&&!fxFut?'0.01':'1';qi.value=fx&&!fxFut?'0.10':'1';}
-  const ci=document.getElementById('f-comm');if(ci)ci.value=fxFut?'5':fx?'7':'0.62';
+  const commVal=fxFut?'5':fx?'7':'0.62';
+  const ci=document.getElementById('f-comm');if(ci)ci.value=commVal;
+  const cip=document.getElementById('f-comm-p');if(cip)cip.value=commVal;
   const tl=document.getElementById('p-ticks-label');if(tl)tl.textContent=(fx||fxFut)?'Pips':'Ticks';
   // Update info box if present
   const ib=document.getElementById('fxFutInfo');
@@ -1323,7 +1327,9 @@ function onPnlRealEdit(){const ri=document.getElementById('f-pnl-real');if(!ri)r
 let _isSaving=false;
 async function submitForm(){
   if(_isSaving)return;
-  const entry=numVal('f-entry');
+  // Read entry and comm from the active panel (simple uses f-entry/f-comm, planned uses f-entry-p/f-comm-p)
+  const isPlanned=formEntryMode==='planned';
+  const entry=isPlanned?numVal('f-entry-p'):numVal('f-entry');
   // In planned mode, outcome is optional (trade may still be developing)
   // In simple mode, both entry and exit are required
   const exit=numVal('f-exit');
@@ -1332,7 +1338,7 @@ async function submitForm(){
   // In planned mode with no outcome yet, exit defaults to 0 (trade in progress)
   const effectiveExit=exit||0;
   _isSaving=true;
-  const inst=document.getElementById('f-inst').value;const qty=numVal('f-qty')||1;const comm=numVal('f-comm')||0;
+  const inst=document.getElementById('f-inst').value;const qty=numVal('f-qty')||1;const comm=isPlanned?numVal('f-comm-p'):numVal('f-comm')||0;
   const fx=isFx(inst),fxFut=isFxFuture(inst),r=calcResult(inst,entry,effectiveExit,qty,currentDir);
   const totalComm=fx&&!fxFut?comm:qty*2*comm;
   const ri=document.getElementById('f-pnl-real');let pnlNet,pnlGross;
