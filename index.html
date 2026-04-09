@@ -1324,13 +1324,16 @@ let _isSaving=false;
 async function submitForm(){
   if(_isSaving)return;
   const entry=numVal('f-entry');
-  // In planned mode, ensure an outcome was selected
-  if(formEntryMode==='planned'&&!plannedOutcome){alert('Selecciona el resultado del trade (SL, TP, BE o Precio custom)');return;}
+  // In planned mode, outcome is optional (trade may still be developing)
+  // In simple mode, both entry and exit are required
   const exit=numVal('f-exit');
-  if(!entry||!exit){alert('Ingresa precio de entrada y salida');return;}
+  if(formEntryMode==='simple'&&(!entry||!exit)){alert('Ingresa precio de entrada y salida');return;}
+  if(formEntryMode==='planned'&&!entry){alert('Ingresa el precio de entrada');return;}
+  // In planned mode with no outcome yet, exit defaults to 0 (trade in progress)
+  const effectiveExit=exit||0;
   _isSaving=true;
   const inst=document.getElementById('f-inst').value;const qty=numVal('f-qty')||1;const comm=numVal('f-comm')||0;
-  const fx=isFx(inst),fxFut=isFxFuture(inst),r=calcResult(inst,entry,exit,qty,currentDir);
+  const fx=isFx(inst),fxFut=isFxFuture(inst),r=calcResult(inst,entry,effectiveExit,qty,currentDir);
   const totalComm=fx&&!fxFut?comm:qty*2*comm;
   const ri=document.getElementById('f-pnl-real');let pnlNet,pnlGross;
   // Only use manual P&L if user explicitly edited it in THIS session (not carried over)
@@ -1351,7 +1354,7 @@ async function submitForm(){
   direction:currentDir,
   qty,
   entryPrice:entry,
-  exitPrice:exit,
+  exitPrice:effectiveExit,
 
   pnlGross:+pnlGross.toFixed(2),
   pnlNet:+pnlNet.toFixed(2),
