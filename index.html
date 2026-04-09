@@ -105,6 +105,20 @@ tr:hover td{background:var(--bg);}
 .long{background:var(--green-dim);color:var(--green);padding:2px 7px;border-radius:4px;font-size:9px;font-weight:500;}
 .short{background:var(--red-dim);color:var(--red);padding:2px 7px;border-radius:4px;font-size:9px;font-weight:500;}
 .win{color:var(--green);font-weight:600;}.loss{color:var(--red);font-weight:600;}
+
+/* ── CUSTOM CHECKBOX ─────────────────────────────── */
+.chk-wrap{display:inline-flex;align-items:center;justify-content:center;width:18px;height:18px;cursor:pointer;position:relative;}
+.chk-wrap input[type=checkbox]{position:absolute;opacity:0;width:0;height:0;pointer-events:none;}
+.chk-box{width:18px;height:18px;border-radius:5px;border:2px solid var(--border2);background:var(--surface);transition:border-color .15s,background .15s,box-shadow .15s;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.chk-wrap:hover .chk-box{border-color:var(--red);}
+.chk-wrap input:checked~.chk-box{border-color:var(--red);background:var(--red);box-shadow:0 0 0 3px var(--red-dim);}
+.chk-mark{width:10px;height:10px;stroke:var(--surface);stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round;fill:none;stroke-dasharray:14;stroke-dashoffset:14;transition:stroke-dashoffset .2s cubic-bezier(.4,0,.2,1);}
+.chk-wrap input:checked~.chk-box .chk-mark{stroke-dashoffset:0;}
+
+/* ── FILA SELECCIONADA ───────────────────────────── */
+tr.row-selected td{background:rgba(230,48,80,.07)!important;border-bottom-color:rgba(230,48,80,.15);}
+tr.row-selected{outline:none;}
+tr.row-selected td:first-child{border-left:3px solid var(--red)!important;}
 .form-wrap{max-width:740px;margin:0 auto;}
 .form-grid-4{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:14px;}
 .form-grid-2{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:14px;}
@@ -890,6 +904,13 @@ function renderCRTStats(trs){const stats={};trs.forEach(t=>{const m=(t.note||'')
 
 // ─── LOG ───────────────────────────────────────────────────────
 var logSelectedIds=new Set();
+function onRowCheck(cb){
+  var id=cb.dataset.id;
+  if(cb.checked){logSelectedIds.add(id);}else{logSelectedIds.delete(id);}
+  var row=document.getElementById('row-'+id);
+  if(row){if(cb.checked)row.classList.add('row-selected');else row.classList.remove('row-selected');}
+  updateBulkBar();
+}
 function updateBulkBar(){
   var bar=document.getElementById('bulkBar');
   var cnt=document.getElementById('bulkCount');
@@ -904,6 +925,8 @@ function toggleSelectAll(cb){
     c.checked=cb.checked;
     if(cb.checked)logSelectedIds.add(c.dataset.id);
     else logSelectedIds.delete(c.dataset.id);
+    var row=document.getElementById('row-'+c.dataset.id);
+    if(row){if(cb.checked)row.classList.add('row-selected');else row.classList.remove('row-selected');}
   });
   updateBulkBar();
 }
@@ -946,7 +969,7 @@ function renderLog(){
     const kl=(t.keyLevel&&t.keyLevel!=='\u2014')?'<span style="background:rgba(45,125,210,.1);border:1px solid var(--blue);border-radius:4px;padding:2px 6px;font-size:9px;color:var(--blue)">'+t.keyLevel+'</span>':'<span style="color:var(--dim)">&#x2014;</span>';
     var rowBg=t.pnlNet>=0?'rgba(0,184,122,.05)':'rgba(230,48,80,.05)';
     var rowBorder=t.pnlNet>=0?'#00b87a':'#e63050';
-    return '<tr style="cursor:pointer;background:'+rowBg+';border-left:3px solid '+rowBorder+'" onclick="openTradeModal(\''+t.id+'\')"><td onclick="event.stopPropagation()" style="width:28px;padding:8px 6px 8px 10px"><input id="chk-'+t.id+'" class="log-chk" type="checkbox" data-id="'+t.id+'" onchange="if(this.checked)logSelectedIds.add(\''+t.id+'\');else logSelectedIds.delete(\''+t.id+'\');updateBulkBar()" style="cursor:pointer;width:14px;height:14px;accent-color:var(--red)"></td>'
+    return '<tr id="row-'+t.id+'" style="cursor:pointer;background:'+rowBg+';border-left:3px solid '+rowBorder+'" onclick="openTradeModal(\''+t.id+'\')"><td onclick="event.stopPropagation()" style="width:28px;padding:8px 6px 8px 10px"><label class="chk-wrap"><input id="chk-'+t.id+'" class="log-chk" type="checkbox" data-id="'+t.id+'" onchange="onRowCheck(this)"><span class="chk-box"><svg class="chk-mark" viewBox="0 0 10 10"><polyline points="1.5,5 4,7.5 8.5,2.5"/></svg></span></label></td>'
       +'<td style="color:var(--mid);font-size:10px">'+dt+'</td>'
       +'<td style="font-weight:500">'+t.instrument+'</td>'
       +'<td><span class="'+(t.direction==='Long'?'long':'short')+'">'+(t.direction==='Long'?'LONG':'SHORT')+'</span></td>'
@@ -968,13 +991,13 @@ function renderLog(){
   var bulkBar='<div id="bulkBar" style="display:none;align-items:center;gap:10px;padding:8px 14px;background:var(--red-dim);border:1px solid var(--red);border-radius:10px;margin-bottom:10px">'
     +'<span id="bulkCount" style="font-size:11px;font-weight:600;color:var(--red)"></span>'
     +'<button onclick="bulkDelete()" style="background:var(--red);border:none;color:#fff;font-weight:700;padding:5px 14px;border-radius:6px;font-size:11px;font-family:var(--font)">&#x1F5D1; Eliminar seleccionados</button>'
-    +'<button onclick="logSelectedIds.clear();document.querySelectorAll(\'.log-chk\').forEach(function(c){c.checked=false;});updateBulkBar()" style="background:none;border:1px solid var(--border2);color:var(--mid);padding:5px 12px;border-radius:6px;font-size:11px;font-family:var(--font)">Cancelar</button>'
+    +'<button onclick="logSelectedIds.clear();document.querySelectorAll(\'.log-chk\').forEach(function(c){c.checked=false;var row=document.getElementById(\'row-\'+c.dataset.id);if(row)row.classList.remove(\'row-selected\');});var ca=document.getElementById(\'chk-all\');if(ca)ca.checked=false;updateBulkBar()" style="background:none;border:1px solid var(--border2);color:var(--mid);padding:5px 12px;border-radius:6px;font-size:11px;font-family:var(--font)">Cancelar</button>'
     +'</div>';
   return '<div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">'+modeL+'</div>'
     +bulkBar
     +'<div class="card"><div class="card-head"><div class="card-title">Trades</div><span class="badge">'+trs.length+' trades</span></div>'
     +'<div class="tbl-wrap"><table><thead><tr>'
-    +'<th style="width:28px"><input type="checkbox" onchange="toggleSelectAll(this)" style="cursor:pointer;width:14px;height:14px;accent-color:var(--red)" title="Seleccionar todo"></th>'
+    +'<th style="width:28px"><label class="chk-wrap"><input type="checkbox" id="chk-all" onchange="toggleSelectAll(this)"><span class="chk-box"><svg class="chk-mark" viewBox="0 0 10 10"><polyline points="1.5,5 4,7.5 8.5,2.5"/></svg></span></label></th>'
     +'<th>FECHA</th><th>INST.</th><th>DIR</th><th>QTY</th><th>ENTRY</th><th>EXIT</th>'
     +'<th>P&L</th><th>DUR.</th><th>SETUP</th><th>KEY LVL</th><th>CRT</th><th>NOTA</th><th>CHARTS</th><th></th>'
     +'</tr></thead><tbody>'+rows+'</tbody></table></div></div>';
