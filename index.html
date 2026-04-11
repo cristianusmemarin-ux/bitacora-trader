@@ -1387,7 +1387,7 @@ function renderForm(){
 
 
 let currentDir='Long',currentRating=3;
-let formEntryMode='simple'; // 'simple' | 'planned'
+let formEntryMode='planned'; // 'simple' | 'planned'
 let plannedOutcome=null; // 'sl'|'tp'|'be'|'custom'
 
 function setFormEntryMode(m){
@@ -1611,7 +1611,7 @@ async function submitForm(){
     }
     if(pendingImageFile){setUploadProgress(10);if(btn)btn.textContent='Subiendo imagen 1...';const path=await uploadTradeImage(pendingImageFile,savedTrade.id);setUploadProgress(45);savedTrade.imagePath=path;await updateTrade({...savedTrade});trades=trades.map(t=>t.id===savedTrade.id?{...t,imagePath:path}:t);}if(pendingImageFile2){setUploadProgress(55);if(btn)btn.textContent='Subiendo imagen 2...';const path2=await uploadTradeImage(pendingImageFile2,savedTrade.id+'_end');setUploadProgress(88);savedTrade.imagePath2=path2;await updateTrade({...savedTrade});trades=trades.map(t=>t.id===savedTrade.id?{...t,imagePath2:path2}:t);}setUploadProgress(100);if(editingTrade&&editingTrade._removeImage&&editingTrade.imagePath)await deleteTradeImage(editingTrade.imagePath);if(editingTrade&&editingTrade._removeImage2&&editingTrade.imagePath2)await deleteTradeImage(editingTrade.imagePath2);
     showToast(editingTrade?'Trade actualizado ✓':'Trade guardado ✓',currentMode==='bt'?'var(--amber)':undefined);
-    formCRTStates={};editingTrade=null;pendingImageFile=null;_isSaving=false;formEntryMode='simple';plannedOutcome=null;showView('log');
+    formCRTStates={};editingTrade=null;pendingImageFile=null;_isSaving=false;formEntryMode='planned';plannedOutcome=null;showView('log');
   }catch(e){alert('Error: '+e.message);if(btn){btn.textContent=editingTrade?'ACTUALIZAR':'GUARDAR TRADE';btn.disabled=false;}_isSaving=false;}
 }
 function editTrade(id){editingTrade=trades.find(t=>t.id==id)||null;if(editingTrade){currentDir=editingTrade.direction;currentRating=editingTrade.rating||3;}formCRTStates={};pendingImageFile=null;pendingImageFile2=null;formEntryMode=editingTrade&&(editingTrade.slPrice||editingTrade.tpPrice)?'planned':'simple';plannedOutcome=editingTrade?.tradeOutcome||null;showView('new');}
