@@ -816,7 +816,58 @@ function renderDashboard(){
     +'<div class="card" style="margin-bottom:14px"><div class="card-head"><div><div class="card-title">P&amp;L por Activo</div><div class="card-subtitle">Rendimiento por instrumento</div></div></div><div class="card-body">'+renderByInstrument(trs)+'</div></div>'
     +'<div class="grid-2b"><div class="card"><div class="card-head"><div><div class="card-title">Mejor &amp; Peor Horario</div><div class="card-subtitle">Basado en tu historial</div></div></div><div class="card-body">'+renderBestWorstHours(trs)+'</div></div><div class="card"><div class="card-head"><div><div class="card-title">CRT \u2014 Setups m\xE1s potentes</div><div class="card-subtitle">Timeframe + estado con m\xE1s TP</div></div></div><div class="card-body">'+renderCRTStats(trs)+'</div></div></div>'
     +'<div class="grid-2b"><div class="card"><div class="card-head"><div><div class="card-title">Racha Win/Loss</div><div class="card-subtitle">Consecutivos en el tiempo</div></div></div><div class="card-body" style="padding:10px 6px 6px"><canvas id="streakCanvas" height="120" style="width:100%;display:block"></canvas></div></div><div class="card"><div class="card-head"><div><div class="card-title">P&amp;L por D\xEDa de la Semana</div><div class="card-subtitle">\xBFQu\xE9 d\xEDas son tus mejores?</div></div></div><div class="card-body">'+renderDayOfWeek(trs)+'</div></div></div>'
+    +'<div class="card" style="margin-bottom:14px"><div class="card-head"><div><div class="card-title">Rendimiento por Sesi\xF3n</div><div class="card-subtitle">Trades ganadores y perdedores</div></div></div><div class="card-body">'+renderSessions(trs)+'</div></div>'
     +'<div class="card" style="margin-bottom:14px"><div class="card-head"><div><div class="card-title">Comparativa Anual por Mes</div><div class="card-subtitle">A\xF1o vs A\xF1o</div></div></div><div class="card-body" style="overflow-x:auto">'+renderYearComparison(trs)+'</div></div>';
+}
+
+function renderSessions(trs){
+  var sessions=[
+    {name:'Asia',      icon:'🌏', color:'var(--purple,#7c3aed)', bg:'rgba(124,58,237,.08)',  start:17*60,    end:24*60+119},
+    {name:'Londres',   icon:'🇬🇧', color:'var(--blue)',           bg:'rgba(45,125,210,.08)',  start:2*60,     end:5*60+59},
+    {name:'Lnd Launch',icon:'🚀', color:'#0f766e',               bg:'rgba(15,118,110,.08)', start:6*60,     end:8*60+59},
+    {name:'New York',  icon:'🗽', color:'var(--green)',           bg:'rgba(0,184,122,.08)',  start:9*60,     end:16*60+59},
+  ];
+
+  function getMinutes(dateStr){
+    var d=new Date(dateStr);
+    return d.getHours()*60+d.getMinutes();
+  }
+
+  function inSession(mins, s){
+    if(s.start>s.end){ // crosses midnight (Asia)
+      return mins>=s.start||mins<=s.end;
+    }
+    return mins>=s.start&&mins<=s.end;
+  }
+
+  var html='<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px">';
+
+  sessions.forEach(function(s){
+    var trades=trs.filter(function(t){
+      return inSession(getMinutes(t.date), s);
+    });
+    var wins=trades.filter(function(t){return t.pnlNet>0;}).length;
+    var losses=trades.filter(function(t){return t.pnlNet<=0;}).length;
+    var total=trades.length;
+    var wr=total>0?Math.round(wins/total*100):0;
+
+    html+='<div style="background:'+s.bg+';border:1px solid '+s.color+';border-radius:12px;padding:14px 12px;text-align:center">'
+      +'<div style="font-size:18px;margin-bottom:4px">'+s.icon+'</div>'
+      +'<div style="font-size:11px;font-weight:700;color:'+s.color+';letter-spacing:.04em;margin-bottom:10px">'+s.name+'</div>'
+      +(total===0
+        ? '<div style="font-size:11px;color:var(--dim)">Sin trades</div>'
+        : '<div style="display:flex;justify-content:center;gap:12px;margin-bottom:8px">'
+          +'<div><div style="font-size:18px;font-weight:700;color:var(--green)">'+wins+'</div><div style="font-size:9px;color:var(--dim);letter-spacing:.06em">WIN</div></div>'
+          +'<div style="width:1px;background:var(--border)"></div>'
+          +'<div><div style="font-size:18px;font-weight:700;color:var(--red)">'+losses+'</div><div style="font-size:9px;color:var(--dim);letter-spacing:.06em">LOSS</div></div>'
+          +'</div>'
+          +'<div style="font-size:10px;color:var(--mid)">'+total+' trades · '+wr+'% WR</div>'
+      )
+      +'</div>';
+  });
+
+  html+='</div>';
+  return html;
 }
 
 function renderDayOfWeek(trs){
