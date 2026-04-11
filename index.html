@@ -563,8 +563,7 @@ function toggleNoteTag(el){
 
 // Paste image from clipboard (Ctrl+V) into upload zones
 document.addEventListener('paste',function(e){
-  var view=document.getElementById('view-new');
-  if(!view||view.style.display==='none')return;
+  if(currentView!=='new')return;
   var items=(e.clipboardData||e.originalEvent&&e.originalEvent.clipboardData||{}).items||[];
   var imgItem=null;
   for(var i=0;i<items.length;i++){if(items[i].type.indexOf('image')>-1){imgItem=items[i];break;}}
