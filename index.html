@@ -789,12 +789,16 @@ function renderDashboard(){
   var winVals=wins.map(function(t){return t.pnlNet;});
   var lossVals=losses.map(function(t){return t.pnlNet;});
   var expVals=trs.map(function(t){return t.pnlNet;});
-  var secKpis=[
+  
+  var tradesWithR=trs.filter(function(t){return calcR(t)!==null;});
+  var avgR=tradesWithR.length?tradesWithR.reduce(function(s,t){return s+calcR(t);},0)/tradesWithR.length:null;
+  var positiveR=tradesWithR.filter(function(t){return calcR(t)>0;}).length;
+var secKpis=[
     {l:'Avg Win',v:fmt(monthAvgW),s:'Mejor: '+fmt(Math.max.apply(null,[0].concat(monthWins.map(function(t){return t.pnlNet;})))),c:'var(--green)',ic:'#00b87a',ibg:'rgba(0,184,122,.1)',svg:ic('<polyline points="18 15 12 9 6 15"/>',2.5,16),spark:makeSpark(monthWins.map(function(t){return t.pnlNet;}),'#00b87a')},
     {l:'Avg Loss',v:fmt(monthAvgL),s:'Peor: '+fmt(Math.min.apply(null,[0].concat(monthLosses.map(function(t){return t.pnlNet;})))),c:'var(--red)',ic:'#e63050',ibg:'rgba(230,48,80,.1)',svg:ic('<polyline points="6 9 12 15 18 9"/>',2.5,16),spark:makeSpark(monthLosses.map(function(t){return t.pnlNet;}),'#e63050')},
     {l:'Racha Actual',v:monthStreak>0?'+'+monthStreak+'W':monthStreak<0?monthStreak+'L':'0',s:'consecutivos',c:monthStreak>0?'var(--green)':monthStreak<0?'var(--red)':'var(--mid)',ic:monthStreak>0?'#00b87a':monthStreak<0?'#e63050':'#94a3b8',ibg:monthStreak>0?'rgba(0,184,122,.1)':monthStreak<0?'rgba(230,48,80,.1)':'rgba(148,163,184,.1)',svg:ic('<polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>',2,16)},
     {l:'Expectativa',v:function(){var e=(monthWr/100*monthAvgW)-((1-monthWr/100)*Math.abs(monthAvgL));return(e>=0?'+':'')+e.toFixed(0);}(),s:'por trade promedio',spark:makeSpark(monthTrs.map(function(t){return t.pnlNet;}),'#00b87a'),c:function(){var e=(monthWr/100*monthAvgW)-((1-monthWr/100)*Math.abs(monthAvgL));return e>=0?'var(--green)':'var(--red)';}(),ic:function(){var e=(monthWr/100*monthAvgW)-((1-monthWr/100)*Math.abs(monthAvgL));return e>=0?'#00b87a':'#e63050';}(),ibg:function(){var e=(monthWr/100*monthAvgW)-((1-monthWr/100)*Math.abs(monthAvgL));return e>=0?'rgba(0,184,122,.1)':'rgba(230,48,80,.1)';}(),svg:ic('<line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/>',2,16)},
-    {l:'DD M\xE1ximo',v:monthMaxDD>0?'-$'+monthMaxDD.toFixed(0):'\u2014',s:'desde el pico',c:'var(--red)',ic:'#e63050',ibg:'rgba(230,48,80,.1)',svg:ic('<polyline points="6 9 12 15 18 9"/>',2.5,16)},
+    {l:'R Promedio',v:avgR!==null?fmtR(Math.round(avgR*100)/100):'—',s:tradesWithR.length+' trades con SL',c:avgR===null?'var(--mid)':avgR>=1.5?'var(--green)':avgR>=0.5?'var(--amber)':'var(--red)',ic:avgR===null?'#94a3b8':avgR>=1.5?'#00b87a':avgR>=0.5?'#e08c00':'#e63050',ibg:avgR===null?'rgba(148,163,184,.1)':avgR>=1.5?'rgba(0,184,122,.1)':avgR>=0.5?'rgba(224,140,0,.1)':'rgba(230,48,80,.1)',svg:ic('<line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/>',2.5,16)},{l:'DD M\xE1ximo',v:monthMaxDD>0?'-$'+monthMaxDD.toFixed(0):'\u2014',s:'desde el pico',c:'var(--red)',ic:'#e63050',ibg:'rgba(230,48,80,.1)',svg:ic('<polyline points="6 9 12 15 18 9"/>',2.5,16)},
   ];
   var secRow='<div class="dash-sec-row">'
     +secKpis.map(function(k){
@@ -844,7 +848,7 @@ function renderSessions(trs){
   var skyline='<svg width="28" height="28" viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="28" x2="28" y2="28"/><line x1="6" y1="28" x2="6" y2="18"/><line x1="10" y1="28" x2="10" y2="12"/><line x1="14" y1="28" x2="14" y2="16"/><line x1="18" y1="28" x2="18" y2="8"/><line x1="22" y1="28" x2="22" y2="14"/><line x1="26" y1="28" x2="26" y2="20"/></svg>';
 
   var sessions=[
-    {name:'Asia',       icon:torii,  color:'#7c3aed', bg:'rgba(124,58,237,.08)', start:17*60, end:1*60+59},
+    {name:'Asia',       icon:torii,  color:'#7c3aed', bg:'rgba(124,58,237,.08)', start:17*60, end:24*60+119},
     {name:'Londres',    icon:bigben, color:'#2d7dd2', bg:'rgba(45,125,210,.08)', start:2*60,  end:5*60+59},
     {name:'Lnd Launch', icon:cohete, color:'#0f766e', bg:'rgba(15,118,110,.08)', start:6*60,  end:8*60+59},
     {name:'New York',   icon:skyline,color:'#00b87a', bg:'rgba(0,184,122,.08)', start:9*60,  end:16*60+59},
@@ -1119,6 +1123,38 @@ async function bulkDelete(){
   showToast(ids.length+' trades eliminados \u2713');
   render();
 }
+function calcR(t){
+  // Returns R multiple obtained, or null if no SL
+  if(!t.slPrice||!t.entryPrice)return null;
+  var sl=+t.slPrice, entry=+t.entryPrice, qty=+t.qty||1;
+  var riskPts=Math.abs(entry-sl);
+  if(riskPts===0)return null;
+
+  // Get tick value
+  var tv=1;
+  if(FUTURES_SPECS[t.instrument]){
+    var spec=FUTURES_SPECS[t.instrument];
+    tv=(riskPts/spec.tick)*spec.tv*qty;
+  } else if(FX_FUTURES_SPECS[t.instrument]){
+    var fxspec=FX_FUTURES_SPECS[t.instrument];
+    tv=(riskPts/fxspec.pip)*fxspec.pipVal*qty;
+  } else {
+    // CFD/Forex approximate
+    if(!t.pnlGross)return null;
+    tv=riskPts*qty; // approximate
+  }
+
+  if(tv===0)return null;
+  var r=t.pnlGross/tv;
+  return Math.round(r*100)/100;
+}
+
+function fmtR(r){
+  if(r===null||r===undefined)return '—';
+  var sign=r>=0?'+':'';
+  return sign+r.toFixed(2)+'R';
+}
+
 function renderLog(){
   const trs=currentTrades();
   const modeL=modeLabel();
@@ -1148,6 +1184,7 @@ function renderLog(){
       +'<td style="color:var(--mid);font-size:10px">'+t.entryPrice+'</td>'
       +'<td style="color:var(--mid);font-size:10px">'+t.exitPrice+'</td>'
       +'<td class="'+(be?'':'')+(be?'':'')+((!be&&t.pnlNet>=0)?'win':(!be&&t.pnlNet<0)?'loss':'')+'\" style="'+(be?'color:var(--amber);font-weight:600':'')+'">'+fmt(t.pnlNet)+'</td>'
+      +(function(){var r=calcR(t);var col=r===null?'var(--dim)':r>=2?'var(--green)':r>=0?'var(--amber)':'var(--red)';return '<td style="color:'+col+';font-weight:600;font-size:11px">'+fmtR(r)+'</td>';})()
       +'<td style="color:var(--dim)">'+t.durationMin+'m</td>'
       +'<td style="color:var(--mid);font-size:10px">'+(t.setup||'&#x2014;')+'</td>'
       +'<td>'+kl+'</td>'
@@ -1170,7 +1207,7 @@ function renderLog(){
     +'<div class="tbl-wrap"><table><thead><tr>'
     +'<th style="width:28px"><label class="chk-wrap"><input type="checkbox" id="chk-all" onchange="toggleSelectAll(this)"><span class="chk-box"><svg class="chk-mark" viewBox="0 0 10 10"><polyline points="1.5,5 4,7.5 8.5,2.5"/></svg></span></label></th>'
     +'<th>FECHA</th><th>INST.</th><th>DIR</th><th>QTY</th><th>ENTRY</th><th>EXIT</th>'
-    +'<th>P&L</th><th>DUR.</th><th>SETUP</th><th>KEY LVL</th><th>CRT</th><th>NOTA</th><th>CHARTS</th><th></th>'
+    +'<th>P&L</th><th style="color:var(--amber)">R</th><th>DUR.</th><th>SETUP</th><th>KEY LVL</th><th>CRT</th><th>NOTA</th><th>CHARTS</th><th></th>'
     +'</tr></thead><tbody>'+rows+'</tbody></table></div></div>';
 }
 
