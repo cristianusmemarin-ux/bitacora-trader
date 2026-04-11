@@ -838,6 +838,7 @@ var secKpis=[
     +'<div class="card" style="margin-bottom:14px"><div class="card-head"><div><div class="card-title">P&amp;L por Activo</div><div class="card-subtitle">Rendimiento por instrumento</div></div></div><div class="card-body">'+renderByInstrument(trs)+'</div></div>'
     +'<div class="grid-2b"><div class="card"><div class="card-head"><div><div class="card-title">Mejor &amp; Peor Horario</div><div class="card-subtitle">Basado en tu historial</div></div></div><div class="card-body">'+renderBestWorstHours(trs)+'</div></div><div class="card"><div class="card-head"><div><div class="card-title">CRT \u2014 Setups m\xE1s potentes</div><div class="card-subtitle">Timeframe + estado con m\xE1s TP</div></div></div><div class="card-body">'+renderCRTStats(trs)+'</div></div></div>'
     +'<div class="grid-2b"><div class="card"><div class="card-head"><div><div class="card-title">Racha Win/Loss</div><div class="card-subtitle">Consecutivos en el tiempo</div></div></div><div class="card-body" style="padding:10px 6px 6px"><canvas id="streakCanvas" height="120" style="width:100%;display:block"></canvas></div></div><div class="card"><div class="card-head"><div><div class="card-title">P&amp;L por D\xEDa de la Semana</div><div class="card-subtitle">\xBFQu\xE9 d\xEDas son tus mejores?</div></div></div><div class="card-body">'+renderDayOfWeek(trs)+'</div></div></div>'
+    +'<div class="card" style="margin-bottom:14px"><div class="card-head"><div><div class="card-title">Rendimiento por Sesión</div><div class="card-subtitle">Basado en horario del trade</div></div></div><div class="card-body">'+renderSessions(trs)+'</div></div>'
     +'<div class="card" style="margin-bottom:14px"><div class="card-head"><div><div class="card-title">Comparativa Anual por Mes</div><div class="card-subtitle">A\xF1o vs A\xF1o</div></div></div><div class="card-body" style="overflow-x:auto">'+renderYearComparison(trs)+'</div></div>';
 }
 
@@ -848,7 +849,7 @@ function renderSessions(trs){
   var skyline='<svg width="28" height="28" viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="28" x2="28" y2="28"/><line x1="6" y1="28" x2="6" y2="18"/><line x1="10" y1="28" x2="10" y2="12"/><line x1="14" y1="28" x2="14" y2="16"/><line x1="18" y1="28" x2="18" y2="8"/><line x1="22" y1="28" x2="22" y2="14"/><line x1="26" y1="28" x2="26" y2="20"/></svg>';
 
   var sessions=[
-    {name:'Asia',       icon:torii,  color:'#7c3aed', bg:'rgba(124,58,237,.08)', start:17*60, end:24*60+119},
+    {name:'Asia',       icon:torii,  color:'#7c3aed', bg:'rgba(124,58,237,.08)', start:17*60, end:1*60+5919},
     {name:'Londres',    icon:bigben, color:'#2d7dd2', bg:'rgba(45,125,210,.08)', start:2*60,  end:5*60+59},
     {name:'Lnd Launch', icon:cohete, color:'#0f766e', bg:'rgba(15,118,110,.08)', start:6*60,  end:8*60+59},
     {name:'New York',   icon:skyline,color:'#00b87a', bg:'rgba(0,184,122,.08)', start:9*60,  end:16*60+59},
