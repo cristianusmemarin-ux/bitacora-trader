@@ -811,18 +811,18 @@ function renderDashboard(){
     +'</div>';
 
   // -- Equity + Calendar ------------------------------------
+  var monthIsPos=monthPnlTotal>=0;
   var eqCard='<div class="card"><div class="card-head">'
-    +'<div><div class="card-title">Curva de Equity</div><div class="card-subtitle">Rendimiento acumulado</div></div>'
+    +'<div><div class="card-title">Curva de Equity</div><div class="card-subtitle">'+mesActual+'</div></div>'
     +'<div style="display:flex;align-items:center;gap:10px">'
     +'<span style="font-size:10px;color:var(--dim)">DD m\xE1x: <b id="maxDDLabel" style="color:var(--red)"></b></span>'
-    +'<span class="badge" style="color:'+(isPos?'var(--green)':'var(--red)')+'">'+fmt(total)+'</span>'
+    +'<span class="badge" style="color:'+(monthIsPos?'var(--green)':'var(--red)')+'">'+ fmt(monthPnlTotal) +'</span>'
     +'</div></div>'
     +'<div class="card-body" style="padding:10px 6px 6px"><canvas id="eqCanvas" height="140" style="width:100%;display:block"></canvas></div></div>';
 
   var calCard='<div class="card"><div class="card-head">'
     +'<div><div class="card-title">Calendario P&amp;L</div><div class="card-subtitle">D\xEDas ganadores vs perdedores</div></div>'
-    +'<div style="display:flex;gap:6px;align-items:center">'+renderCalSelector(trs)+'</div>'
-    +'</div><div class="card-body">'+renderCalendar(trs)+'</div></div>';
+    +'</div><div class="card-body">'+renderCalendarFiltered(trs,dashViewMode,targetDate)+'</div></div>';
 
   return hero+secRow
 
@@ -948,6 +948,105 @@ function renderCalendar(trs){
   return monthSummary+'<div style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-bottom:6px">'+['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'].map(l=>'<div style="text-align:center;font-size:9px;color:var(--dim);padding:3px 0;font-weight:600">'+l+'</div>').join('')+'</div><div id="calGrid" style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px;">'+cells+'</div>';
 }
 function renderMonths(trs){const MESES=['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];const byMonth={};trs.forEach(t=>{const d=new Date(t.date),key=d.getFullYear()+'-'+d.getMonth();if(!byMonth[key])byMonth[key]={pnl:0,count:0,wins:0,month:d.getMonth(),year:d.getFullYear()};byMonth[key].pnl+=t.pnlNet;byMonth[key].count++;if(t.pnlNet>0)byMonth[key].wins++;});const list=Object.values(byMonth).sort((a,b)=>a.year-b.year||a.month-b.month).slice(-6);if(!list.length)return'<div style="color:var(--dim);font-size:11px;text-align:center;padding:20px">Sin datos</div>';const mx=Math.max(...list.map(m=>Math.abs(m.pnl)),1);return list.map(m=>{const col=m.pnl>=0?'var(--green)':'var(--red)';const w=Math.abs(m.pnl)/mx*100;const ps=(m.pnl>=0?'+$':'-$')+Math.abs(m.pnl).toFixed(0);return'<div style="margin-bottom:10px"><div style="display:flex;justify-content:space-between;margin-bottom:3px"><span style="font-size:10px;color:var(--text)">'+MESES[m.month]+' '+m.year+'</span><div style="display:flex;gap:8px"><span style="font-size:9px;color:var(--mid)">'+m.count+' trades</span><span style="font-size:10px;font-weight:600;color:'+col+'">'+ps+'</span></div></div><div class="stat-bar-bg"><div class="stat-bar-fill" style="width:'+w+'%;background:'+col+'"></div></div></div>';}).join('');}
+function renderCalendarFiltered(trs,viewMode,targetDate){
+  // In month mode: show the selected month
+  // In year mode: show a 12-month year overview grid
+  if(viewMode==='month'){
+    // Use targetDate for year/month instead of filterYearCal/filterMonthCal
+    var selY=targetDate.getFullYear(),selM=targetDate.getMonth();
+    return renderCalendarForMonth(trs,selY,selM);
+  } else {
+    // Year view: grid of all 12 months for the selected year
+    return renderCalendarYearView(trs,targetDate.getFullYear());
+  }
+}
+
+function renderCalendarForMonth(trs,selY,selM){
+  var DIAS_FULL=['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+  var byDay={};
+  trs.forEach(function(t){
+    var d=new Date(t.date);
+    if(d.getFullYear()!==selY||d.getMonth()!==selM)return;
+    var key=d.getDate();
+    if(!byDay[key])byDay[key]={pnl:0,count:0,wins:0,bes:0};
+    byDay[key].pnl+=t.pnlNet;byDay[key].count++;
+    if(isBE(t))byDay[key].bes++;else if(t.pnlNet>0)byDay[key].wins++;
+  });
+  var maxAbs=Math.max.apply(null,Object.values(byDay).map(function(d){return Math.abs(d.pnl);}).concat([1]));
+  var firstDow=new Date(selY,selM,1).getDay();
+  var daysInMonth=new Date(selY,selM+1,0).getDate();
+  var monthPnl=Object.values(byDay).reduce(function(s,d){return s+d.pnl;},0);
+  var monthCount=Object.values(byDay).reduce(function(s,d){return s+d.count;},0);
+  var monthWins=Object.values(byDay).reduce(function(s,d){return s+d.wins;},0);
+  var monthBesCount=Object.values(byDay).reduce(function(s,d){return s+d.bes;},0);
+  var monthLossCount=monthCount-monthWins-monthBesCount;
+  var monthCol=monthPnl>=0?'var(--green)':'var(--red)';
+  var cells='';
+  for(var i=0;i<firstDow;i++)cells+='<div></div>';
+  for(var day=1;day<=daysInMonth;day++){
+    var d=byDay[day];
+    var dow=new Date(selY,selM,day).getDay();
+    var isWeekend=dow===0||dow===6;
+    if(d){
+      var intensity=Math.min(Math.abs(d.pnl)/maxAbs,1);
+      var bg=d.pnl>0?'rgba(0,184,122,'+(0.12+intensity*0.55)+')':d.pnl<0?'rgba(230,48,80,'+(0.12+intensity*0.55)+')':'var(--border)';
+      var tc=d.pnl>0?'var(--green)':'var(--red)';
+      var ps=(d.pnl>=0?'+':'-')+'$'+Math.abs(d.pnl).toFixed(0);
+      var isSelected=calSelectedDay===day;
+      cells+='<div onclick="showCalDay('+day+','+selY+','+selM+')" style="cursor:pointer;background:'+bg+';border-radius:8px;padding:6px 4px;min-height:56px;display:flex;flex-direction:column;gap:2px;outline:'+(isSelected?'2px solid var(--text)':'none')+';outline-offset:-2px;transition:opacity .15s" title="'+DIAS_FULL[selM]+' '+day+': '+ps+'"><span style="font-size:10px;color:var(--mid);font-weight:600">'+day+'</span><span style="font-size:9px;color:var(--dim)">'+d.count+(d.count===1?' trade':' trades')+'</span><span style="font-size:11px;font-weight:700;color:'+tc+';margin-top:auto">'+ps+'</span></div>';
+    } else {
+      var weekendBg=isWeekend?'rgba(0,0,0,0.02)':'var(--bg)';
+      cells+='<div style="background:'+weekendBg+';border-radius:8px;padding:6px 4px;min-height:56px;border:1px dashed var(--border)"><span style="font-size:10px;color:'+(isWeekend?'var(--dim)':'var(--border2)')+'">'+day+'</span></div>';
+    }
+  }
+  var monthSummary=monthCount>0
+    ?'<div style="display:flex;gap:16px;align-items:center;margin-bottom:10px;padding:10px 14px;background:var(--bg);border-radius:10px;border:1px solid var(--border)"><div style="font-family:-apple-system,sans-serif;font-size:22px;font-weight:700;color:'+monthCol+';">'+(monthPnl>=0?'+':'')+monthPnl.toFixed(0)+'</div><div style="flex:1"><div style="font-size:11px;color:var(--mid)">'+monthCount+' trades · '+monthWins+'W / '+monthLossCount+'L'+(monthBesCount?' / '+monthBesCount+'BE':'')+' · '+(monthCount-monthBesCount>0?((monthWins/(monthCount-monthBesCount))*100).toFixed(0):0)+'% WR</div><div style="font-size:10px;color:var(--dim);margin-top:2px">'+DIAS_FULL[selM]+' '+selY+'</div></div></div>'
+    :'<div style="margin-bottom:10px;padding:10px 14px;background:var(--bg);border-radius:10px;border:1px solid var(--border);font-size:11px;color:var(--dim)">Sin trades en '+DIAS_FULL[selM]+' '+selY+'</div>';
+  return monthSummary+'<div style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-bottom:6px">'+['Dom','Lun','Mar','Mié','Jue','Vie','Sáb'].map(function(l){return'<div style="text-align:center;font-size:9px;color:var(--dim);padding:3px 0;font-weight:600">'+l+'</div>';}).join('')+'</div><div id="calGrid" style="display:grid;grid-template-columns:repeat(7,1fr);gap:4px;">'+cells+'</div>';
+}
+
+function renderCalendarYearView(trs,selY){
+  var MESES=['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];
+  var MESES_FULL=['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
+  var byMonth={};
+  trs.forEach(function(t){
+    var d=new Date(t.date);
+    if(d.getFullYear()!==selY)return;
+    var m=d.getMonth();
+    if(!byMonth[m])byMonth[m]={pnl:0,count:0,wins:0,bes:0};
+    byMonth[m].pnl+=t.pnlNet;byMonth[m].count++;
+    if(isBE(t))byMonth[m].bes++;else if(t.pnlNet>0)byMonth[m].wins++;
+  });
+  var maxAbs=Math.max.apply(null,Object.values(byMonth).map(function(m){return Math.abs(m.pnl);}).concat([1]));
+  var totalPnl=Object.values(byMonth).reduce(function(s,m){return s+m.pnl;},0);
+  var totalCount=Object.values(byMonth).reduce(function(s,m){return s+m.count;},0);
+  var totalWins=Object.values(byMonth).reduce(function(s,m){return s+m.wins;},0);
+  var totalBes=Object.values(byMonth).reduce(function(s,m){return s+m.bes;},0);
+  var totalNonBE=totalCount-totalBes;
+  var totalCol=totalPnl>=0?'var(--green)':'var(--red)';
+  var summary=totalCount>0
+    ?'<div style="display:flex;gap:16px;align-items:center;margin-bottom:14px;padding:10px 14px;background:var(--bg);border-radius:10px;border:1px solid var(--border)"><div style="font-family:-apple-system,sans-serif;font-size:22px;font-weight:700;color:'+totalCol+';">'+(totalPnl>=0?'+':'')+totalPnl.toFixed(0)+'</div><div style="flex:1"><div style="font-size:11px;color:var(--mid)">'+totalCount+' trades · '+totalWins+'W / '+(totalCount-totalWins-totalBes)+'L'+(totalBes?' / '+totalBes+'BE':'')+' · '+(totalNonBE>0?((totalWins/totalNonBE)*100).toFixed(0):0)+'% WR</div><div style="font-size:10px;color:var(--dim);margin-top:2px">'+selY+' completo</div></div></div>'
+    :'<div style="margin-bottom:14px;padding:10px 14px;background:var(--bg);border-radius:10px;border:1px solid var(--border);font-size:11px;color:var(--dim)">Sin trades en '+selY+'</div>';
+  var grid='<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px">';
+  for(var i=0;i<12;i++){
+    var m=byMonth[i];
+    var pnl=m?m.pnl:null;
+    var intensity=pnl!==null?Math.min(Math.abs(pnl)/maxAbs,1):0;
+    var bg=pnl===null?'var(--bg)':pnl>0?'rgba(0,184,122,'+(0.1+intensity*0.55)+')':'rgba(230,48,80,'+(0.1+intensity*0.55)+')';
+    var tc=pnl===null?'var(--dim)':pnl>=0?'var(--green)':'var(--red)';
+    var ps=pnl===null?'—':(pnl>=0?'+$':'-$')+Math.abs(pnl).toFixed(0);
+    var nonBE=m?(m.count-m.bes):0;
+    var wr=m&&nonBE>0?((m.wins/nonBE)*100).toFixed(0)+'%':'';
+    grid+='<div style="background:'+bg+';border:1px solid var(--border);border-radius:10px;padding:12px 10px;cursor:'+(m?'pointer':'default')+'" '+(m?'onclick="toggleCalendarMonth('+i+','+selY+')"':'')+'>'
+      +'<div style="font-size:11px;font-weight:600;color:var(--mid);margin-bottom:6px">'+MESES[i]+'</div>'
+      +'<div style="font-family:-apple-system,sans-serif;font-size:17px;font-weight:700;color:'+tc+';line-height:1">'+ps+'</div>'
+      +(m?'<div style="font-size:9px;color:var(--dim);margin-top:4px">'+m.count+' trades'+(wr?' · '+wr+' WR':'')+'</div>':'')
+      +'</div>';
+  }
+  grid+='</div>';
+  return summary+grid;
+}
+
 function renderMonthsGrid(trs){const MESES=['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic'];const years=getTradeYears(trs);const year=filterYearMonths||years[0];const byMonth={};trs.forEach(t=>{const d=new Date(t.date);if(d.getFullYear()!==year)return;const m=d.getMonth();if(!byMonth[m])byMonth[m]={pnl:0,count:0,wins:0,bes:0};byMonth[m].pnl+=t.pnlNet;byMonth[m].count++;if(isBE(t))byMonth[m].bes++;else if(t.pnlNet>0)byMonth[m].wins++;});const maxAbs=Math.max(...Object.values(byMonth).map(m=>Math.abs(m.pnl)),1);return'<div style="display:grid;grid-template-columns:repeat(6,1fr);gap:8px">'+MESES.map((name,i)=>{const m=byMonth[i];const pnl=m?m.pnl:null;const bg=pnl===null?'var(--bg)':pnl>0?'rgba(0,184,122,'+(0.1+Math.abs(pnl)/maxAbs*0.5)+')':'rgba(230,48,80,'+(0.1+Math.abs(pnl)/maxAbs*0.5)+')';const intensity=pnl!==null?Math.abs(pnl)/maxAbs:0;const textCol=intensity>.5?'#fff':pnl===null?'var(--dim)':pnl>=0?'var(--green)':'var(--red)';const subTextCol=intensity>.5?'rgba(255,255,255,.8)':'var(--dim)';const ps=pnl===null?'—':(pnl>=0?'+$':'-$')+Math.abs(pnl).toFixed(0);const nonBE=m?(m.count-m.bes):0;const wr=m&&nonBE>0?(m.wins/nonBE*100).toFixed(0)+'% WR':'';return'<div style="background:'+bg+';border:1px solid var(--border);border-radius:10px;padding:12px 8px;text-align:center"><div style="font-size:10px;color:'+subTextCol+';margin-bottom:6px">'+name+'</div><div style="font-size:15px;font-weight:700;color:'+textCol+';line-height:1">'+ps+'</div><div style="font-size:9px;color:'+subTextCol+';margin-top:4px">'+(m?m.count+' trades':'')+'</div><div style="font-size:9px;color:'+textCol+';margin-top:2px;letter-spacing:.04em">'+wr+'</div></div>';}).join('')+'</div>';}
 function renderBestWorstHours(trs){const byHour={};trs.forEach(t=>{const h=new Date(t.date).getHours();if(!byHour[h])byHour[h]={wins:0,losses:0,pnl:0,count:0,bes:0};byHour[h].pnl+=t.pnlNet;byHour[h].count++;if(isBE(t))byHour[h].bes++;else if(t.pnlNet>0)byHour[h].wins++;else byHour[h].losses++;});const entries=Object.entries(byHour);if(!entries.length)return'<div style="color:var(--dim);font-size:11px;text-align:center;padding:20px">Necesitas más trades</div>';const sortedDesc=[...entries].sort((a,b)=>{const wra=a[1].count-a[1].bes>0?a[1].wins/(a[1].count-a[1].bes):0;const wrb=b[1].count-b[1].bes>0?b[1].wins/(b[1].count-b[1].bes):0;return wrb-wra||b[1].pnl-a[1].pnl;});const best=sortedDesc.slice(0,Math.ceil(entries.length/2));const bestHours=new Set(best.map(([h])=>h));const worst=[...entries].sort((a,b)=>{const wra=a[1].count-a[1].bes>0?a[1].wins/(a[1].count-a[1].bes):0;const wrb=b[1].count-b[1].bes>0?b[1].wins/(b[1].count-b[1].bes):0;return wra-wrb||a[1].pnl-b[1].pnl;}).filter(([h])=>!bestHours.has(h)).slice(0,3);const row=(h,d,type)=>{const nonBE=d.count-d.bes;const wr=nonBE>0?(d.wins/nonBE*100).toFixed(0):'0';const col=type==='best'?'var(--green)':'var(--red)';const bg=type==='best'?'rgba(0,184,122,.1)':'rgba(230,48,80,.1)';return'<div class="hour-stat"><div class="hour-badge" style="background:'+bg+';color:'+col+'">'+h+'h</div><div style="flex:1"><div style="font-size:12px;font-weight:600;color:var(--text)">'+h+':00 — '+(parseInt(h)+1)+':00</div><div style="font-size:10px;color:var(--mid);margin-top:2px">'+d.count+' trades · '+wr+'% WR · '+fmt(d.pnl)+'</div></div><div style="font-size:14px;font-weight:700;color:'+col+'">'+wr+'%</div></div>';};return'<div style="margin-bottom:14px"><div style="font-size:10px;color:var(--green);font-weight:600;letter-spacing:.06em;margin-bottom:8px">✓ MEJOR HORARIO</div>'+best.map(([h,d])=>row(h,d,'best')).join('')+'</div><div><div style="font-size:10px;color:var(--red);font-weight:600;letter-spacing:.06em;margin-bottom:8px">✗ PEOR HORARIO</div>'+worst.map(([h,d])=>row(h,d,'worst')).join('')+'</div>';}
 function renderSetups(trs){const bs={};trs.forEach(t=>{const s=t.setup||'—';if(!bs[s])bs[s]={pnl:0,count:0,wins:0,bes:0};bs[s].pnl+=t.pnlNet;bs[s].count++;if(isBE(t))bs[s].bes++;else if(t.pnlNet>0)bs[s].wins++;});const list=Object.entries(bs).filter(([k])=>k!=='—').sort((a,b)=>b[1].pnl-a[1].pnl).slice(0,6);if(!list.length)return'<div style="color:var(--dim);font-size:11px;text-align:center;padding:20px">Agrega setups a tus trades</div>';const mx=Math.max(...list.map(([,v])=>Math.abs(v.pnl)),1);return list.map(([name,d])=>{const nonBE=d.count-d.bes;const wr=nonBE>0?d.wins/nonBE*100:0,w=Math.abs(d.pnl)/mx*100,col=d.pnl>=0?'var(--green)':'var(--red)';return'<div style="margin-bottom:10px"><div style="display:flex;justify-content:space-between;margin-bottom:3px"><span style="font-size:10px;color:var(--text)">'+name+'</span><div style="display:flex;gap:8px"><span style="font-size:9px;color:var(--mid)">'+wr.toFixed(0)+'%WR</span><span style="font-size:10px;font-weight:500;color:'+col+'">'+fmt(d.pnl)+'</span></div></div><div class="stat-bar-bg"><div class="stat-bar-fill" style="width:'+w+'%;background:'+col+'"></div></div></div>';}).join('');}
@@ -1492,7 +1591,19 @@ function clearCRTInst(inst){if(!confirm('¿Limpiar todos los rangos de '+inst+'?
 function toggleCRTForm(tf){const cur=formCRTStates[tf]||null;const next=cur===null?'activo':cur==='activo'?'vivo':cur==='vivo'?'ambos':null;if(next===null)delete formCRTStates[tf];else formCRTStates[tf]=next;const el=document.getElementById('crt-form-'+tf),stEl=document.getElementById('crt-form-state-'+tf);if(!el||!stEl)return;const col=next==='activo'?'var(--green)':next==='vivo'?'var(--amber)':next==='ambos'?'var(--purple)':'var(--dim)';el.style.borderColor=next?col:'var(--border)';stEl.textContent=next?crtLabel(next):'—';stEl.style.color=col;}
 
 // --- CHARTS ----------------------------------------------------
-function drawCharts(){const trs=currentTrades();drawEquity(trs);drawMAE(trs);drawStreak(trs);}
+function drawCharts(){
+  var trs=currentTrades();
+  var now=new Date();
+  var targetDate=dashViewMode==='month'
+    ?new Date(now.getFullYear(),now.getMonth()+dashMonthOffset,1)
+    :new Date(now.getFullYear()+dashYearOffset,0,1);
+  var monthTrsChart=dashViewMode==='month'
+    ?trs.filter(function(t){var d=new Date(t.date);return d.getMonth()===targetDate.getMonth()&&d.getFullYear()===targetDate.getFullYear();})
+    :trs.filter(function(t){var d=new Date(t.date);return d.getFullYear()===targetDate.getFullYear();});
+  drawEquity(monthTrsChart);
+  drawMAE(trs);
+  drawStreak(trs);
+}
 function drawEquity(trs){
   var cv=document.getElementById('eqCanvas');if(!cv)return;
   var dpr=window.devicePixelRatio||1,W=cv.offsetWidth,H=200;
