@@ -700,6 +700,8 @@ function renderDashboard(){
   var monthByInst={};monthTrs.forEach(function(t){if(!monthByInst[t.instrument])monthByInst[t.instrument]={pnl:0,count:0,wins:0};monthByInst[t.instrument].pnl+=t.pnlNet;monthByInst[t.instrument].count++;if(t.pnlNet>0)monthByInst[t.instrument].wins++;});
   var monthBestInst=Object.entries(monthByInst).sort(function(a,b){return b[1].pnl-a[1].pnl;})[0];
   var monthBestWR=monthBestInst?(monthBestInst[1].wins/monthBestInst[1].count*100).toFixed(0)+'%':'-';
+  var monthStreak=calcStreak(monthTrs);
+  var monthMaxDD=function(){var peak=0,maxDD=0;var sorted=[...monthTrs].sort(function(a,b){return new Date(a.date)-new Date(b.date);});var cum=0;sorted.forEach(function(t){cum+=t.pnlNet;if(cum>peak)peak=cum;var dd=peak-cum;if(dd>maxDD)maxDD=dd;});return maxDD;}();
   var meses=['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
   var mesActual=dashViewMode==='month'
     ?meses[targetDate.getMonth()]+' '+targetDate.getFullYear()
@@ -739,7 +741,7 @@ function renderDashboard(){
     // P&L — hero metric
     +'<div class="dash-hero-pnl" style="padding-right:32px">'
     +'<div style="font-size:10px;color:var(--dim);letter-spacing:.06em;text-transform:uppercase;margin-bottom:8px">P&amp;L Neto</div>'
-    +'<div style="font-family:-apple-system,sans-serif;font-size:48px;font-weight:800;color:'+(monthPnlTotal>=0?'var(--green)':'var(--red)')+';line-height:1;letter-spacing:-.03em">'+fmt(monthPnlTotal)+'</div>'
+    +'<div style="font-family:-apple-system,sans-serif;font-size:38px;font-weight:800;color:'+(monthPnlTotal>=0?'var(--green)':'var(--red)')+';line-height:1;letter-spacing:-.03em">'+fmt(monthPnlTotal)+'</div>'
     +'<div style="font-size:12px;color:var(--mid);margin-top:8px">'+monthTrs.length+' trades &middot; '+monthWins.length+'W / '+monthLosses.length+'L'+(monthBes.length?' / '+monthBes.length+'BE':'')+'</div>'
     +'</div>'
     // Divider
@@ -747,28 +749,28 @@ function renderDashboard(){
     // Win Rate
     +'<div class="dash-hero-cell" style="padding:0 28px;text-align:center">'
     +'<div style="font-size:10px;color:var(--dim);letter-spacing:.06em;text-transform:uppercase;margin-bottom:8px">Win Rate</div>'
-    +'<div style="font-family:-apple-system,sans-serif;font-size:32px;font-weight:800;color:'+(monthWr>=50?'var(--green)':'var(--red)')+';line-height:1;letter-spacing:-.02em">'+monthWr.toFixed(1)+'%</div>'
+    +'<div style="font-family:-apple-system,sans-serif;font-size:26px;font-weight:800;color:'+(monthWr>=50?'var(--green)':'var(--red)')+';line-height:1;letter-spacing:-.02em">'+monthWr.toFixed(1)+'%</div>'
     +'<div style="font-size:11px;color:var(--dim);margin-top:8px">'+monthWins.length+'W &middot; '+monthLosses.length+'L'+(monthBes.length?' &middot; '+monthBes.length+'BE':'')+'</div>'
     +'</div>'
     +'<div class="dash-hero-divider"></div>'
     // Profit Factor
     +'<div class="dash-hero-cell" style="padding:0 28px;text-align:center">'
     +'<div style="font-size:10px;color:var(--dim);letter-spacing:.06em;text-transform:uppercase;margin-bottom:8px">Profit Factor</div>'
-    +'<div style="font-family:-apple-system,sans-serif;font-size:32px;font-weight:800;color:var(--amber);line-height:1;letter-spacing:-.02em">'+(monthPf>50?'\u221E':monthPf.toFixed(2))+'</div>'
+    +'<div style="font-family:-apple-system,sans-serif;font-size:26px;font-weight:800;color:var(--amber);line-height:1;letter-spacing:-.02em">'+(monthPf>50?'\u221E':monthPf.toFixed(2))+'</div>'
     +'<div style="font-size:11px;color:var(--dim);margin-top:8px">'+(monthPf>=1.5?'Excelente':monthPf>=1?'Positivo':'Negativo')+'</div>'
     +'</div>'
     +'<div class="dash-hero-divider"></div>'
     // Risk Reward
     +'<div class="dash-hero-cell" style="padding:0 28px;text-align:center">'
     +'<div style="font-size:10px;color:var(--dim);letter-spacing:.06em;text-transform:uppercase;margin-bottom:8px">Risk / Reward</div>'
-    +'<div style="font-family:-apple-system,sans-serif;font-size:32px;font-weight:800;color:'+(monthRr===null?'var(--mid)':monthRr>=1.5?'var(--green)':monthRr>=1?'var(--amber)':'var(--red)')+';line-height:1;letter-spacing:-.02em">'+(monthRr!==null?monthRr.toFixed(2):'\u2014')+'</div>'
+    +'<div style="font-family:-apple-system,sans-serif;font-size:26px;font-weight:800;color:'+(monthRr===null?'var(--mid)':monthRr>=1.5?'var(--green)':monthRr>=1?'var(--amber)':'var(--red)')+';line-height:1;letter-spacing:-.02em">'+(monthRr!==null?monthRr.toFixed(2):'\u2014')+'</div>'
     +'<div style="font-size:11px;color:var(--dim);margin-top:8px">'+(monthRr===null?'Sin datos':monthRr>=2?'Excelente':monthRr>=1.5?'Muy bueno':monthRr>=1?'Positivo':'Mejorable')+'</div>'
     +'</div>'
     +'<div class="dash-hero-divider"></div>'
     // Mejor activo
     +'<div class="dash-hero-last" style="padding-left:32px;text-align:right">'
     +'<div style="font-size:10px;color:var(--dim);letter-spacing:.06em;text-transform:uppercase;margin-bottom:8px">Mejor Activo</div>'
-    +'<div style="font-family:-apple-system,sans-serif;font-size:32px;font-weight:800;color:var(--blue);line-height:1;letter-spacing:-.02em">'+(monthBestInst?monthBestInst[0]:'\u2014')+'</div>'
+    +'<div style="font-family:-apple-system,sans-serif;font-size:26px;font-weight:800;color:var(--blue);line-height:1;letter-spacing:-.02em">'+(monthBestInst?monthBestInst[0]:'\u2014')+'</div>'
     +'<div style="font-size:11px;color:var(--dim);margin-top:8px">'+(monthBestInst?fmt(monthBestInst[1].pnl)+' &middot; '+monthBestWR+' WR':'Sin datos')+'</div>'
     +'</div>'
     +'</div>'
@@ -788,11 +790,11 @@ function renderDashboard(){
   var lossVals=losses.map(function(t){return t.pnlNet;});
   var expVals=trs.map(function(t){return t.pnlNet;});
   var secKpis=[
-    {l:'Avg Win',v:fmt(avgW),s:'Mejor: '+fmt(Math.max.apply(null,[0].concat(wins.map(function(t){return t.pnlNet;})))),c:'var(--green)',ic:'#00b87a',ibg:'rgba(0,184,122,.1)',svg:ic('<polyline points="18 15 12 9 6 15"/>',2.5,16),spark:makeSpark(winVals,'#00b87a')},
-    {l:'Avg Loss',v:fmt(avgL),s:'Peor: '+fmt(Math.min.apply(null,[0].concat(losses.map(function(t){return t.pnlNet;})))),c:'var(--red)',ic:'#e63050',ibg:'rgba(230,48,80,.1)',svg:ic('<polyline points="6 9 12 15 18 9"/>',2.5,16),spark:makeSpark(lossVals,'#e63050')},
-    {l:'Racha Actual',v:streak>0?'+'+streak+'W':streak<0?streak+'L':'0',s:'consecutivos',c:streak>0?'var(--green)':streak<0?'var(--red)':'var(--mid)',ic:streak>0?'#00b87a':streak<0?'#e63050':'#94a3b8',ibg:streak>0?'rgba(0,184,122,.1)':streak<0?'rgba(230,48,80,.1)':'rgba(148,163,184,.1)',svg:ic('<polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>',2,16)},
-    {l:'Expectativa',v:function(){var e=(wr/100*avgW)-((1-wr/100)*Math.abs(avgL));return(e>=0?'+':'')+e.toFixed(0);}(),s:'por trade promedio',spark:makeSpark(expVals,'#00b87a'),c:function(){var e=(wr/100*avgW)-((1-wr/100)*Math.abs(avgL));return e>=0?'var(--green)':'var(--red)';}(),ic:function(){var e=(wr/100*avgW)-((1-wr/100)*Math.abs(avgL));return e>=0?'#00b87a':'#e63050';}(),ibg:function(){var e=(wr/100*avgW)-((1-wr/100)*Math.abs(avgL));return e>=0?'rgba(0,184,122,.1)':'rgba(230,48,80,.1)';}(),svg:ic('<line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/>',2,16)},
-    {l:'DD M\xE1ximo',v:function(){var peak=0,maxDD=0;trs.forEach(function(t){var cum=0;trs.slice(0,trs.indexOf(t)+1).forEach(function(x){cum+=x.pnlNet;});if(cum>peak)peak=cum;var dd=peak-cum;if(dd>maxDD)maxDD=dd;});return maxDD>0?'-$'+maxDD.toFixed(0):'\u2014';}(),s:'desde el pico',c:'var(--red)',ic:'#e63050',ibg:'rgba(230,48,80,.1)',svg:ic('<polyline points="6 9 12 15 18 9"/>',2.5,16)},
+    {l:'Avg Win',v:fmt(monthAvgW),s:'Mejor: '+fmt(Math.max.apply(null,[0].concat(monthWins.map(function(t){return t.pnlNet;})))),c:'var(--green)',ic:'#00b87a',ibg:'rgba(0,184,122,.1)',svg:ic('<polyline points="18 15 12 9 6 15"/>',2.5,16),spark:makeSpark(monthWins.map(function(t){return t.pnlNet;}),'#00b87a')},
+    {l:'Avg Loss',v:fmt(monthAvgL),s:'Peor: '+fmt(Math.min.apply(null,[0].concat(monthLosses.map(function(t){return t.pnlNet;})))),c:'var(--red)',ic:'#e63050',ibg:'rgba(230,48,80,.1)',svg:ic('<polyline points="6 9 12 15 18 9"/>',2.5,16),spark:makeSpark(monthLosses.map(function(t){return t.pnlNet;}),'#e63050')},
+    {l:'Racha Actual',v:monthStreak>0?'+'+monthStreak+'W':monthStreak<0?monthStreak+'L':'0',s:'consecutivos',c:monthStreak>0?'var(--green)':monthStreak<0?'var(--red)':'var(--mid)',ic:monthStreak>0?'#00b87a':monthStreak<0?'#e63050':'#94a3b8',ibg:monthStreak>0?'rgba(0,184,122,.1)':monthStreak<0?'rgba(230,48,80,.1)':'rgba(148,163,184,.1)',svg:ic('<polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/>',2,16)},
+    {l:'Expectativa',v:function(){var e=(monthWr/100*monthAvgW)-((1-monthWr/100)*Math.abs(monthAvgL));return(e>=0?'+':'')+e.toFixed(0);}(),s:'por trade promedio',spark:makeSpark(monthTrs.map(function(t){return t.pnlNet;}),'#00b87a'),c:function(){var e=(monthWr/100*monthAvgW)-((1-monthWr/100)*Math.abs(monthAvgL));return e>=0?'var(--green)':'var(--red)';}(),ic:function(){var e=(monthWr/100*monthAvgW)-((1-monthWr/100)*Math.abs(monthAvgL));return e>=0?'#00b87a':'#e63050';}(),ibg:function(){var e=(monthWr/100*monthAvgW)-((1-monthWr/100)*Math.abs(monthAvgL));return e>=0?'rgba(0,184,122,.1)':'rgba(230,48,80,.1)';}(),svg:ic('<line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/>',2,16)},
+    {l:'DD M\xE1ximo',v:monthMaxDD>0?'-$'+monthMaxDD.toFixed(0):'\u2014',s:'desde el pico',c:'var(--red)',ic:'#e63050',ibg:'rgba(230,48,80,.1)',svg:ic('<polyline points="6 9 12 15 18 9"/>',2.5,16)},
   ];
   var secRow='<div class="dash-sec-row">'
     +secKpis.map(function(k){
@@ -801,7 +803,7 @@ function renderDashboard(){
         +'<div style="width:28px;height:28px;border-radius:7px;background:'+k.ibg+';color:'+k.ic+';display:flex;align-items:center;justify-content:center">'+k.svg+'</div>'
         +'<span style="font-size:10px;color:var(--mid);letter-spacing:.04em">'+k.l+'</span>'
         +'</div>'
-        +'<div style="font-family:-apple-system,sans-serif;font-size:24px;font-weight:700;color:'+k.c+';line-height:1;letter-spacing:-.01em;margin-bottom:5px">'+k.v+'</div>'
+        +'<div style="font-family:-apple-system,sans-serif;font-size:20px;font-weight:700;color:'+k.c+';line-height:1;letter-spacing:-.01em;margin-bottom:5px">'+k.v+'</div>'
         +'<div style="font-size:10px;color:var(--dim);margin-bottom:'+(k.spark?'6px':'0')+'">'+k.s+'</div>'
         +(k.spark||'')
         +'</div>';
