@@ -677,8 +677,12 @@ function renderDashboard(){
   var bestWR=bestInst?(bestInst[1].wins/bestInst[1].count*100).toFixed(0)+'%':'-';
 
   var now=new Date();
-  var targetDate=new Date(now.getFullYear(),now.getMonth()+dashMonthOffset,1);
-  var monthTrs=trs.filter(function(t){var d=new Date(t.date);return d.getMonth()===targetDate.getMonth()&&d.getFullYear()===targetDate.getFullYear();});
+  var targetDate=dashViewMode==='month'
+    ?new Date(now.getFullYear(),now.getMonth()+dashMonthOffset,1)
+    :new Date(now.getFullYear()+dashYearOffset,0,1);
+  var monthTrs=dashViewMode==='month'
+    ?trs.filter(function(t){var d=new Date(t.date);return d.getMonth()===targetDate.getMonth()&&d.getFullYear()===targetDate.getFullYear();})
+    :trs.filter(function(t){var d=new Date(t.date);return d.getFullYear()===targetDate.getFullYear();});
   var monthWins=monthTrs.filter(function(t){return !isBE(t)&&t.pnlNet>0;});
   var monthLosses=monthTrs.filter(function(t){return !isBE(t)&&t.pnlNet<=0;});
   var monthBes=monthTrs.filter(function(t){return isBE(t);});
@@ -695,7 +699,9 @@ function renderDashboard(){
   var monthBestInst=Object.entries(monthByInst).sort(function(a,b){return b[1].pnl-a[1].pnl;})[0];
   var monthBestWR=monthBestInst?(monthBestInst[1].wins/monthBestInst[1].count*100).toFixed(0)+'%':'-';
   var meses=['Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'];
-  var mesActual=meses[targetDate.getMonth()]+' '+targetDate.getFullYear();
+  var mesActual=dashViewMode==='month'
+    ?meses[targetDate.getMonth()]+' '+targetDate.getFullYear()
+    :String(targetDate.getFullYear());
   var isPos=total>=0;
   var pnlCol=isPos?'var(--green)':'var(--red)';
 
@@ -713,6 +719,12 @@ function renderDashboard(){
     +'<button onclick="changeDashMonth(-1)" style="width:28px;height:28px;border-radius:8px;border:0.5px solid var(--border2);background:none;cursor:pointer;color:var(--mid);font-size:18px;line-height:1">‹</button>'
     +'<span style="font-size:11px;font-weight:600;color:var(--mid);letter-spacing:.1em;text-transform:uppercase">'+ mesActual +'</span>'
     +'<button onclick="changeDashMonth(1)" style="width:28px;height:28px;border-radius:8px;border:0.5px solid var(--border2);background:none;cursor:pointer;color:var(--mid);font-size:18px;line-height:1">›</button>'
+    +'</div>'
+    +'<div style="display:flex;justify-content:center;margin-bottom:20px">'
+    +'<div onclick="toggleDashViewMode()" style="display:flex;background:var(--bg);border:1px solid var(--border);border-radius:20px;padding:2px;cursor:pointer;gap:2px">'
+    +'<span style="padding:4px 14px;border-radius:16px;font-size:10px;font-weight:600;letter-spacing:.06em;transition:all .15s;background:'+(dashViewMode===\'month\'?\'var(--card)\':\'none\')+\';color:'+(dashViewMode===\'month\'?\'var(--text)\':\'var(--mid)\')+\';box-shadow:'+(dashViewMode===\'month\'?\'0 1px 3px rgba(0,0,0,.1)\':\'none\')+\'">MES</span>'
+    +'<span style="padding:4px 14px;border-radius:16px;font-size:10px;font-weight:600;letter-spacing:.06em;transition:all .15s;background:'+(dashViewMode===\'year\'?\'var(--card)\':\'none\')+\';color:'+(dashViewMode===\'year\'?\'var(--text)\':\'var(--mid)\')+\';box-shadow:'+(dashViewMode===\'year\'?\'0 1px 3px rgba(0,0,0,.1)\':\'none\')+\'">AÑO</span>'
+    +'</div>'
     +'</div>'
     +'<div style="display:flex;align-items:center;gap:6px;padding:5px 14px;border-radius:20px;background:'+statusBg+';border:1px solid '+statusCol+'">'
     +'<div style="width:6px;height:6px;border-radius:50%;background:'+statusCol+'"></div>'
@@ -2277,8 +2289,18 @@ function localDateStr(isoStr){
 }
 
 var dashMonthOffset=0;
+var dashViewMode='month'; // 'month' or 'year'
+var dashYearOffset=0;
+
 function changeDashMonth(dir){
-  dashMonthOffset+=dir;
+  if(dashViewMode==='month') dashMonthOffset+=dir;
+  else dashYearOffset+=dir;
+  render();
+}
+function toggleDashViewMode(){
+  dashViewMode=dashViewMode==='month'?'year':'month';
+  dashMonthOffset=0;
+  dashYearOffset=0;
   render();
 }
 
