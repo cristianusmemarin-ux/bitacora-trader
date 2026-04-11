@@ -846,10 +846,11 @@ function renderSessions(trs){
     var trades=trs.filter(function(t){
       return inSession(getMinutes(t.date), s);
     });
-    var wins=trades.filter(function(t){return t.pnlNet>0;}).length;
-    var losses=trades.filter(function(t){return t.pnlNet<=0;}).length;
+    var wins=trades.filter(function(t){return t.pnlGross>0;}).length;
+    var losses=trades.filter(function(t){return t.pnlGross<0;}).length;
+    var be=trades.filter(function(t){return t.pnlGross===0;}).length;
     var total=trades.length;
-    var wr=total>0?Math.round(wins/total*100):0;
+    var wr=(wins+losses)>0?Math.round(wins/(wins+losses)*100):0;
 
     html+='<div style="background:'+s.bg+';border:1px solid '+s.color+';border-radius:12px;padding:14px 12px;text-align:center">'
       +'<div style="font-size:18px;margin-bottom:4px">'+s.icon+'</div>'
@@ -861,7 +862,7 @@ function renderSessions(trs){
           +'<div style="width:1px;background:var(--border)"></div>'
           +'<div><div style="font-size:18px;font-weight:700;color:var(--red)">'+losses+'</div><div style="font-size:9px;color:var(--dim);letter-spacing:.06em">LOSS</div></div>'
           +'</div>'
-          +'<div style="font-size:10px;color:var(--mid)">'+total+' trades · '+wr+'% WR</div>'
+          +'<div style="font-size:10px;color:var(--mid)">'+total+' trades · '+wr+'% WR'+(be?' · '+be+' BE':'')+'</div>'
       )
       +'</div>';
   });
