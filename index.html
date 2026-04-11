@@ -541,9 +541,55 @@ function openLightbox(url,caption){document.getElementById('lightbox-img').src=u
 function closeLightbox(){document.getElementById('lightbox').style.display='none';document.body.style.overflow='';}
 document.addEventListener('keydown',function(e){if(e.key==='Escape')closeLightbox();});
 function onImageSelected(input){const file=input.files[0];if(!file)return;if(file.size>10*1024*1024){showToast('Imagen muy grande, max 10MB');return;}pendingImageFile=file;const zone=document.getElementById('imgUploadZone');zone.classList.add('has-image');zone.innerHTML='<div style="position:relative"><img class="img-preview" src="'+URL.createObjectURL(file)+'" alt="chart"><button class="img-remove-btn" onclick="removeImage(event)">&#x2715;</button></div>';}
-function removeImage(e){e.stopPropagation();pendingImageFile=null;if(editingTrade)editingTrade._removeImage=true;const zone=document.getElementById('imgUploadZone');zone.classList.remove('has-image');zone.innerHTML='<input type="file" accept="image/*" onchange="onImageSelected(this)"><div style="pointer-events:none;padding:16px 0"><div style="font-size:26px;opacity:.35;margin-bottom:6px"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg></div><div style="font-size:11px;color:var(--mid);font-weight:500">Inicio del trade</div><div style="font-size:10px;color:var(--dim);margin-top:4px">PNG, JPG, WEBP &middot; Max 10MB</div></div>';}
+function removeImage(e){e.stopPropagation();pendingImageFile=null;if(editingTrade)editingTrade._removeImage=true;const zone=document.getElementById('imgUploadZone');zone.classList.remove('has-image');zone.innerHTML='<input type="file" accept="image/*" onchange="onImageSelected(this)"><div style="pointer-events:none;padding:16px 0"><div style="font-size:26px;opacity:.35;margin-bottom:6px"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg></div><div style="font-size:11px;color:var(--mid);font-weight:500">Inicio del trade</div><div style="font-size:10px;color:var(--dim);margin-top:4px">PNG, JPG, WEBP &middot; Max 10MB</div><div style=\"font-size:10px;color:var(--dim);margin-top:3px;opacity:.6\">o pega con Ctrl+V</div></div></div>';}
 function onImageSelected2(input){const file=input.files[0];if(!file)return;if(file.size>10*1024*1024){showToast('Imagen muy grande, max 10MB');return;}pendingImageFile2=file;const zone=document.getElementById('imgUploadZone2');zone.classList.add('has-image');zone.innerHTML='<div style="position:relative"><img class="img-preview" src="'+URL.createObjectURL(file)+'" alt="chart"><button class="img-remove-btn" onclick="removeImage2(event)">&#x2715;</button></div>';}
-function removeImage2(e){e.stopPropagation();pendingImageFile2=null;if(editingTrade)editingTrade._removeImage2=true;const zone=document.getElementById('imgUploadZone2');zone.classList.remove('has-image');zone.innerHTML='<input type="file" accept="image/*" onchange="onImageSelected2(this)"><div style="pointer-events:none;padding:16px 0"><div style="font-size:26px;opacity:.35;margin-bottom:6px"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg></div><div style="font-size:11px;color:var(--mid);font-weight:500">Fin del trade</div><div style="font-size:10px;color:var(--dim);margin-top:4px">PNG, JPG, WEBP &middot; Max 10MB</div></div>';}
+function removeImage2(e){e.stopPropagation();pendingImageFile2=null;if(editingTrade)editingTrade._removeImage2=true;const zone=document.getElementById('imgUploadZone2');zone.classList.remove('has-image');zone.innerHTML='<input type="file" accept="image/*" onchange="onImageSelected2(this)"><div style="pointer-events:none;padding:16px 0"><div style="font-size:26px;opacity:.35;margin-bottom:6px"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg></div><div style="font-size:11px;color:var(--mid);font-weight:500">Fin del trade</div><div style="font-size:10px;color:var(--dim);margin-top:4px">PNG, JPG, WEBP &middot; Max 10MB</div><div style=\"font-size:10px;color:var(--dim);margin-top:3px;opacity:.6\">o pega con Ctrl+V</div></div></div>';}
+// Toggle note tag active state
+function toggleNoteTag(el){
+  var tg=el.dataset.tag;
+  var isActive=el.classList.contains('tag-active');
+  var isGood=tg.indexOf('✓')>-1||tg==='Gestión perfecta';
+  var isBad=tg==='Revenge trade'||tg==='Rompió reglas';
+  var col=isGood?'var(--green)':isBad?'var(--red)':'var(--amber)';
+  var bg=isGood?'rgba(0,184,122,.12)':isBad?'rgba(230,48,80,.12)':'rgba(224,140,0,.12)';
+  if(isActive){
+    el.classList.remove('tag-active');
+    el.style.borderColor='var(--border2)';el.style.color='var(--mid)';el.style.background='none';
+  } else {
+    el.classList.add('tag-active');
+    el.style.borderColor=col;el.style.color=col;el.style.background=bg;
+  }
+}
+
+// Paste image from clipboard (Ctrl+V) into upload zones
+document.addEventListener('paste',function(e){
+  var view=document.getElementById('view-new');
+  if(!view||view.style.display==='none')return;
+  var items=(e.clipboardData||e.originalEvent&&e.originalEvent.clipboardData||{}).items||[];
+  var imgItem=null;
+  for(var i=0;i<items.length;i++){if(items[i].type.indexOf('image')>-1){imgItem=items[i];break;}}
+  if(!imgItem)return;
+  e.preventDefault();
+  var file=imgItem.getAsFile();
+  if(!file)return;
+  // Fill zone1 first, then zone2
+  var zone1=document.getElementById('imgUploadZone');
+  var zone2=document.getElementById('imgUploadZone2');
+  if(!pendingImageFile&&zone1){
+    pendingImageFile=file;
+    zone1.classList.add('has-image');
+    zone1.innerHTML='<div style="position:relative"><img class="img-preview" src="'+URL.createObjectURL(file)+'" alt="chart"><button class="img-remove-btn" onclick="removeImage(event)">&#x2715;</button></div>';
+    showToast('Screenshot pegado en Inicio ✓');
+  } else if(!pendingImageFile2&&zone2){
+    pendingImageFile2=file;
+    zone2.classList.add('has-image');
+    zone2.innerHTML='<div style="position:relative"><img class="img-preview" src="'+URL.createObjectURL(file)+'" alt="chart"><button class="img-remove-btn" onclick="removeImage2(event)">&#x2715;</button></div>';
+    showToast('Screenshot pegado en Fin ✓');
+  } else {
+    showToast('Ambas zonas ya tienen imagen');
+  }
+});
+
 function setUploadProgress(pct){const bar=document.getElementById('uploadBar'),wrap=document.getElementById('uploadProgress');if(!bar||!wrap)return;wrap.style.display='block';bar.style.width=pct+'%';if(pct>=100)setTimeout(function(){wrap.style.display='none';bar.style.width='0%';},600);}
 
 // SUPABASE
@@ -849,10 +895,10 @@ function renderSessions(trs){
   var skyline='<svg width="28" height="28" viewBox="0 0 32 32" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="28" x2="28" y2="28"/><line x1="6" y1="28" x2="6" y2="18"/><line x1="10" y1="28" x2="10" y2="12"/><line x1="14" y1="28" x2="14" y2="16"/><line x1="18" y1="28" x2="18" y2="8"/><line x1="22" y1="28" x2="22" y2="14"/><line x1="26" y1="28" x2="26" y2="20"/></svg>';
 
   var sessions=[
-    {name:'Asia',       icon:torii,  color:'#7c3aed', bg:'rgba(124,58,237,.08)', start:17*60, end:1*60+59},
+    {name:'Asia',       icon:torii,  color:'#7c3aed', bg:'rgba(124,58,237,.08)', start:17*60, end:1*60+5919},
     {name:'Londres',    icon:bigben, color:'#2d7dd2', bg:'rgba(45,125,210,.08)', start:2*60,  end:5*60+59},
-    {name:'Londres Launch', icon:cohete, color:'#0f766e', bg:'rgba(15,118,110,.08)', start:6*60,  end:7*60+59},
-    {name:'New York',   icon:skyline,color:'#00b87a', bg:'rgba(0,184,122,.08)', start:8*60,  end:16*60+59},
+    {name:'Londres Launch', icon:cohete, color:'#0f766e', bg:'rgba(15,118,110,.08)', start:6*60,  end:8*60+59},
+    {name:'New York',   icon:skyline,color:'#00b87a', bg:'rgba(0,184,122,.08)', start:9*60,  end:16*60+59},
   ];
 
   function getMinutes(dateStr){var d=new Date(dateStr);return d.getHours()*60+d.getMinutes();}
@@ -1228,7 +1274,7 @@ function renderForm(){
 
   function makeZone(id,src,label,onSel,onRem){
     if(src) return '<div class="img-upload-zone has-image" id="'+id+'"><div style="position:relative"><img class="img-preview" src="'+src+'" alt="chart"><button class="img-remove-btn" onclick="'+onRem+'(event)">&#x2715;</button></div></div>';
-    return '<div class="img-upload-zone" id="'+id+'"><input type="file" accept="image/*" onchange="'+onSel+'(this)"><div style="pointer-events:none;padding:16px 0"><div style="font-size:26px;opacity:.35;margin-bottom:6px"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg></div><div style="font-size:11px;color:var(--mid);font-weight:500">'+label+'</div><div style="font-size:10px;color:var(--dim);margin-top:4px">PNG, JPG, WEBP &middot; Max 10MB</div></div></div>';
+    return '<div class="img-upload-zone" id="'+id+'"><input type="file" accept="image/*" onchange="'+onSel+'(this)"><div style="pointer-events:none;padding:16px 0"><div style="font-size:26px;opacity:.35;margin-bottom:6px"><svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg></div><div style="font-size:11px;color:var(--mid);font-weight:500">'+label+'</div><div style="font-size:10px;color:var(--dim);margin-top:4px">PNG, JPG, WEBP &middot; Max 10MB</div><div style=\"font-size:10px;color:var(--dim);margin-top:3px;opacity:.6\">o pega con Ctrl+V</div></div></div>';
   }
 
   const qtyLabel =fxFut?'Contratos (FX Fut)':forex?'Lotes (MT5)':'Contratos';
@@ -1377,9 +1423,40 @@ function renderForm(){
     +[1,2,3,4,5].map(r=>'<button class="star-btn" id="star-'+r+'" onclick="setRating('+r+')" style="border:1px solid '+(v('rating',3)>=r?'var(--amber)':'var(--border2)')+';background:'+(v('rating',3)>=r?'rgba(255,179,64,.15)':'none')+';color:'+(v('rating',3)>=r?'var(--amber)':'var(--dim)')+'">&#x2605;</button>').join('')
     +'<span id="ratingLabel" style="font-size:10px;color:var(--mid);margin-left:6px">'+['','Muy malo','Malo','Regular','Bueno','Perfecto'][v('rating',3)]+'</span>'
     +'</div></div>'
-    // Note
-    +'<div style="margin-bottom:14px"><label>Nota / Observaci\xF3n</label>'
-    +'<textarea id="f-note" rows="2" placeholder="&iquest;Qu&eacute; sali&oacute; bien?">'+(v('note','')).replace(/\[CRT:[^\]]+\]/g,'').trim()+'</textarea></div>'
+    // Note — structured 3-question + tags
+    +(function(){
+      var raw=(v('note','')||'').replace(/\[CRT:[^\]]+\]/g,'').trim();
+      var parsed={why:'',what:'',improve:'',tags:[]};
+      try{if(raw.startsWith('{')){var p=JSON.parse(raw);parsed.why=p.why||'';parsed.what=p.what||'';parsed.improve=p.improve||'';parsed.tags=p.tags||[];}}catch(ex){parsed.why=raw;}
+      var ALL_TAGS=['✓ Seguí el plan','Salí antes','Revenge trade','Overtrading','Sin setup claro','Gestión perfecta','Rompió reglas','FOMO','Añadí size'];
+      var tagsHtml=ALL_TAGS.map(function(tg){
+        var active=parsed.tags.indexOf(tg)>-1;
+        var col=tg.indexOf('✓')>-1||tg==='Gestión perfecta'?'var(--green)':tg==='Revenge trade'||tg==='Rompió reglas'?'var(--red)':'var(--amber)';
+        var bg=tg.indexOf('✓')>-1||tg==='Gestión perfecta'?'rgba(0,184,122,.12)':tg==='Revenge trade'||tg==='Rompió reglas'?'rgba(230,48,80,.12)':'rgba(224,140,0,.12)';
+        return'<span onclick="toggleNoteTag(this)" data-tag="'+tg+'" style="font-size:11px;padding:4px 10px;border-radius:20px;cursor:pointer;border:1px solid '+(active?col:'var(--border2)')+';color:'+(active?col:'var(--mid)')+';background:'+(active?bg:'none')+';transition:all .15s">'+tg+'</span>';
+      }).join('');
+      return'<div style="margin-bottom:14px">'
+        +'<div style="display:flex;align-items:center;gap:8px;margin-bottom:10px"><label style="margin:0;font-size:11px;color:var(--mid);letter-spacing:.04em">BIT\u00C1CORA</label></div>'
+        +'<div style="background:var(--bg);border:1px solid var(--border);border-radius:12px;overflow:hidden">'
+        +'<div style="padding:12px 14px;border-bottom:1px solid var(--border)">'
+        +'<div style="display:flex;align-items:center;gap:7px;margin-bottom:6px"><div style="width:18px;height:18px;border-radius:50%;background:rgba(45,125,210,.15);color:var(--blue);display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;flex-shrink:0">1</div><span style="font-size:11px;color:var(--mid)">&iquest;Por qu&eacute; entr&eacute;?</span></div>'
+        +'<textarea id="f-note-why" rows="2" style="margin:0" placeholder="Setup, confluencias, razón de la entrada…">'+parsed.why+'</textarea>'
+        +'</div>'
+        +'<div style="padding:12px 14px;border-bottom:1px solid var(--border)">'
+        +'<div style="display:flex;align-items:center;gap:7px;margin-bottom:6px"><div style="width:18px;height:18px;border-radius:50%;background:rgba(224,140,0,.15);color:var(--amber);display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;flex-shrink:0">2</div><span style="font-size:11px;color:var(--mid)">&iquest;Qu&eacute; pas&oacute;?</span></div>'
+        +'<textarea id="f-note-what" rows="2" style="margin:0" placeholder="Cómo se desarrolló, si respetó el plan…">'+parsed.what+'</textarea>'
+        +'</div>'
+        +'<div style="padding:12px 14px;border-bottom:1px solid var(--border)">'
+        +'<div style="display:flex;align-items:center;gap:7px;margin-bottom:6px"><div style="width:18px;height:18px;border-radius:50%;background:rgba(0,184,122,.15);color:var(--green);display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;flex-shrink:0">3</div><span style="font-size:11px;color:var(--mid)">&iquest;Qu&eacute; mejorar&iacute;a?</span></div>'
+        +'<textarea id="f-note-improve" rows="2" style="margin:0" placeholder="Error cometido, lección aprendida…">'+parsed.improve+'</textarea>'
+        +'</div>'
+        +'<div style="padding:10px 14px">'
+        +'<div style="font-size:10px;color:var(--dim);margin-bottom:7px">Etiquetas rápidas</div>'
+        +'<div id="note-tags-wrap" style="display:flex;flex-wrap:wrap;gap:5px">'+tagsHtml+'</div>'
+        +'</div>'
+        +'</div>'
+        +'</div>';
+    })()
     // Actions
     +'<div class="form-actions">'
     +'<button class="btn-cancel" onclick="showView(\'log\')">Cancelar</button>'
@@ -1564,7 +1641,14 @@ async function submitForm(){
   else if(ri?.dataset.edited==='1'&&ri.value&&editingTrade){pnlNet=numVal('f-pnl-real');pnlGross=pnlNet+totalComm;}
   else{pnlGross=r?r.gross:0;pnlNet=pnlGross-totalComm;}
   const crtRanges=Object.entries(formCRTStates).filter(([,s])=>s).map(([tf,s])=>tf+':'+s).join(',');
-  const baseNote=document.getElementById('f-note').value;const fullNote=crtRanges?baseNote+(baseNote?' ':'')+('[CRT:'+crtRanges+']'):baseNote;
+  // Build structured note JSON
+  var noteWhy=(document.getElementById('f-note-why')||{}).value||'';
+  var noteWhat=(document.getElementById('f-note-what')||{}).value||'';
+  var noteImprove=(document.getElementById('f-note-improve')||{}).value||'';
+  var noteTags=Array.from(document.querySelectorAll('#note-tags-wrap [data-tag].tag-active')).map(function(el){return el.dataset.tag;});
+  var noteObj={why:noteWhy,what:noteWhat,improve:noteImprove,tags:noteTags};
+  var baseNote=JSON.stringify(noteObj);
+  const fullNote=crtRanges?baseNote+' [CRT:'+crtRanges+']':baseNote;
   const btn=document.querySelector('.btn-save,.btn-save-bt');if(btn){btn.textContent='Guardando...';btn.disabled=true;}
   try{
     let imagePath=editingTrade?.imagePath||null;
@@ -1878,7 +1962,27 @@ function renderTradeModal(trs){
     +'<div class="tm-left">'
     +imgsHtml
     +'<div class="tm-section"><div class="tm-stitle">Rangos CRT</div><div style="display:flex;flex-wrap:wrap;gap:5px">'+crtBadges+'</div></div>'
-    +'<div class="tm-section"><div class="tm-stitle">Nota</div><div class="tm-note">'+(note||'<span style="color:var(--dim);font-style:italic">Sin nota</span>')+'</div></div>'
+    +(function(){
+      var raw=(t.note||'').replace(/\[CRT:[^\]]+\]/g,'').trim();
+      var parsed={why:'',what:'',improve:'',tags:[]};
+      var isJson=false;
+      try{if(raw.startsWith('{')){var p=JSON.parse(raw);parsed.why=p.why||'';parsed.what=p.what||'';parsed.improve=p.improve||'';parsed.tags=p.tags||[];isJson=true;}}catch(ex){}
+      if(!isJson&&raw)parsed.why=raw;
+      var hasContent=parsed.why||parsed.what||parsed.improve||parsed.tags.length;
+      if(!hasContent)return'<div class="tm-section"><div class="tm-stitle">Bit\u00E1cora</div><div class="tm-note"><span style="color:var(--dim);font-style:italic">Sin notas</span></div></div>';
+      var tagsHtml=parsed.tags.length?parsed.tags.map(function(tg){
+        var isGood=tg.indexOf('\u2713')>-1||tg==='Gesti\u00F3n perfecta';
+        var isBad=tg==='Revenge trade'||tg==='Rompi\u00F3 reglas';
+        var col=isGood?'var(--green)':isBad?'var(--red)':'var(--amber)';
+        return'<span style="font-size:10px;padding:3px 9px;border-radius:20px;border:1px solid '+col+';color:'+col+'">'+tg+'</span>';
+      }).join(''):'';
+      var rows='';
+      if(parsed.why)rows+='<div style="margin-bottom:10px"><div style="display:flex;align-items:center;gap:6px;margin-bottom:4px"><div style="width:16px;height:16px;border-radius:50%;background:rgba(45,125,210,.15);color:var(--blue);display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:700;flex-shrink:0">1</div><span style="font-size:10px;color:var(--mid)">&iquest;Por qu&eacute; entr&eacute;?</span></div><div style="font-size:12px;color:var(--text);line-height:1.6;padding-left:22px;white-space:pre-wrap">'+parsed.why+'</div></div>';
+      if(parsed.what)rows+='<div style="margin-bottom:10px"><div style="display:flex;align-items:center;gap:6px;margin-bottom:4px"><div style="width:16px;height:16px;border-radius:50%;background:rgba(224,140,0,.15);color:var(--amber);display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:700;flex-shrink:0">2</div><span style="font-size:10px;color:var(--mid)">&iquest;Qu&eacute; pas&oacute;?</span></div><div style="font-size:12px;color:var(--text);line-height:1.6;padding-left:22px;white-space:pre-wrap">'+parsed.what+'</div></div>';
+      if(parsed.improve)rows+='<div style="margin-bottom:10px"><div style="display:flex;align-items:center;gap:6px;margin-bottom:4px"><div style="width:16px;height:16px;border-radius:50%;background:rgba(0,184,122,.15);color:var(--green);display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:700;flex-shrink:0">3</div><span style="font-size:10px;color:var(--mid)">&iquest;Qu&eacute; mejorar&iacute;a?</span></div><div style="font-size:12px;color:var(--text);line-height:1.6;padding-left:22px;white-space:pre-wrap">'+parsed.improve+'</div></div>';
+      if(tagsHtml)rows+='<div style="display:flex;flex-wrap:wrap;gap:5px;margin-top:4px">'+tagsHtml+'</div>';
+      return'<div class="tm-section"><div class="tm-stitle">Bit\u00E1cora</div><div style="background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:12px">'+rows+'</div></div>';
+    })()
     +'</div>'
     +'<div class="tm-right">'
     +'<div class="tm-pnl-hero">'
