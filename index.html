@@ -634,6 +634,7 @@ function modeAccent(){return currentMode==='live'?'var(--green)':'var(--amber)';
 function isBE(t){
   if(t.tradeOutcome==='be')return true;
   if(t.entryPrice&&t.exitPrice&&+t.entryPrice===+t.exitPrice)return true;
+  if(t.pnlGross===0)return true;
   return false;
 }
 
