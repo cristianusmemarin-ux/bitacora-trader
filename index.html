@@ -790,7 +790,7 @@ function renderDashboard(){
   var lossVals=losses.map(function(t){return t.pnlNet;});
   var expVals=trs.map(function(t){return t.pnlNet;});
   
-  var tradesWithR=trs.filter(function(t){return calcR(t)!==null;});
+  var tradesWithR=monthTrs.filter(function(t){return calcR(t)!==null;});
   var avgR=tradesWithR.length?tradesWithR.reduce(function(s,t){return s+calcR(t);},0)/tradesWithR.length:null;
   var positiveR=tradesWithR.filter(function(t){return calcR(t)>0;}).length;
 var secKpis=[
