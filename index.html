@@ -919,12 +919,14 @@ function renderSessions(trs){
       +'<div style="font-size:11px;font-weight:700;color:'+s.color+';letter-spacing:.04em;margin-bottom:10px">'+s.name+'</div>'
       +(total===0
         ?'<div style="font-size:11px;color:var(--dim)">Sin trades</div>'
-        :'<div style="display:flex;justify-content:center;gap:12px;margin-bottom:8px">'
+        :'<div style="display:flex;justify-content:center;gap:10px;margin-bottom:8px">'
           +'<div><div style="font-size:18px;font-weight:700;color:var(--green)">'+wins+'</div><div style="font-size:9px;color:var(--dim);letter-spacing:.06em">WIN</div></div>'
           +'<div style="width:1px;background:var(--border)"></div>'
+          +(be?'<div><div style="font-size:18px;font-weight:700;color:var(--amber)">'+be+'</div><div style="font-size:9px;color:var(--dim);letter-spacing:.06em">BE</div></div>':'')+''
+          +(be?'+'+'<div style="width:1px;background:var(--border)"></div>':'')+''
           +'<div><div style="font-size:18px;font-weight:700;color:var(--red)">'+losses+'</div><div style="font-size:9px;color:var(--dim);letter-spacing:.06em">LOSS</div></div>'
           +'</div>'
-          +'<div style="font-size:10px;color:var(--mid)">'+total+' trades &middot; '+wr+'% WR'+(be?' &middot; '+be+' BE':'')+'</div>'
+          +'<div style="font-size:10px;color:var(--mid)">'+total+' trades &middot; '+wr+'% WR</div>'
       )+'</div>';
   });
   html+='</div>';
