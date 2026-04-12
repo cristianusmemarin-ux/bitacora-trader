@@ -533,6 +533,7 @@ let trades=[],currentView='dashboard',editingTrade=null;
 let crtData={},crtActiveInst=INSTRUMENTS[0],formCRTStates={};
 let filterYearMonths=null,filterMonthCal=new Date().getMonth(),filterYearCal=null;
 var logFilter={inst:'',outcome:'',tag:'',minR:'',dir:''};
+var logSort={col:'date',asc:false};
 let pendingImageFile=null,pendingImageFile2=null;
 
 // IMAGE HELPERS
@@ -884,7 +885,7 @@ var secKpis=[
     +'<div class="grid-2b"><div class="card" style="grid-column:1/-1"><div class="card-head"><div><div class="card-title">P&amp;L Mensual \u2014 A\xF1o completo</div><div class="card-subtitle">Los 12 meses</div></div><div style="display:flex;gap:6px;align-items:center">'+renderYearSelector(trs)+'</div></div><div class="card-body">'+renderMonthsGrid(trs)+'</div></div></div>'
     +'<div class="card" style="margin-bottom:14px"><div class="card-head"><div><div class="card-title">P&amp;L por Activo</div><div class="card-subtitle">Rendimiento por instrumento</div></div></div><div class="card-body">'+renderByInstrument(trs)+'</div></div>'
     +'<div class="grid-2b"><div class="card"><div class="card-head"><div><div class="card-title">Mejor &amp; Peor Horario</div><div class="card-subtitle">Basado en tu historial</div></div></div><div class="card-body">'+renderBestWorstHours(trs)+'</div></div><div class="card"><div class="card-head"><div><div class="card-title">CRT \u2014 Setups m\xE1s potentes</div><div class="card-subtitle">Timeframe + estado con m\xE1s TP</div></div></div><div class="card-body">'+renderCRTStats(trs)+'</div></div></div>'
-    +'<div class="grid-2b"><div class="card"><div class="card-head"><div><div class="card-title">Racha Win/Loss</div><div class="card-subtitle">Consecutivos en el tiempo</div></div></div><div class="card-body" style="padding:10px 6px 6px"><canvas id="streakCanvas" height="120" style="width:100%;display:block"></canvas></div></div><div class="card"><div class="card-head"><div><div class="card-title">P&amp;L por D\xEDa de la Semana</div><div class="card-subtitle">\xBFQu\xE9 d\xEDas son tus mejores?</div></div></div><div class="card-body">'+renderDayOfWeek(trs)+'</div></div></div>'
+    +'<div class="grid-2b"><div class="card"><div class="card-head"><div><div class="card-title">Distribuci\u00F3n de R</div><div class="card-subtitle">Frecuencia por m\u00FAltiplo de riesgo</div></div></div><div class="card-body">'+renderRDistribution(monthTrs)+'</div></div><div class="card"><div class="card-head"><div><div class="card-title">Racha Win/Loss</div><div class="card-subtitle">Consecutivos en el tiempo</div></div></div><div class="card-body" style="padding:10px 6px 6px"><canvas id="streakCanvas" height="120" style="width:100%;display:block"></canvas></div></div><div class="card"><div class="card-head"><div><div class="card-title">P&amp;L por D\xEDa de la Semana</div><div class="card-subtitle">\xBFQu\xE9 d\xEDas son tus mejores?</div></div></div><div class="card-body">'+renderDayOfWeek(trs)+'</div></div></div>'
     +'<div class="card" style="margin-bottom:14px"><div class="card-head"><div><div class="card-title">Rendimiento por Sesi\u00F3n</div><div class="card-subtitle">Basado en horario del trade</div></div></div><div class="card-body">'+renderSessions(trs)+'</div></div>'
     +'<div class="card" style="margin-bottom:14px"><div class="card-head"><div><div class="card-title">Comparativa Anual por Mes</div><div class="card-subtitle">A\xF1o vs A\xF1o</div></div></div><div class="card-body" style="overflow-x:auto">'+renderYearComparison(trs)+'</div></div>';
 }
@@ -1229,6 +1230,74 @@ function applyLogFilters(trs){
 }
 function setLogFilter(key,val){logFilter[key]=val;render();}
 function clearLogFilters(){logFilter={inst:'',outcome:'',tag:'',minR:'',dir:''};render();}
+function setLogSort(col){if(logSort.col===col){logSort.asc=!logSort.asc;}else{logSort.col=col;logSort.asc=false;}render();}
+
+function drawRDistribution(buckets,canvasId){
+  var cv=document.getElementById(canvasId);if(!cv)return;
+  var isDark=document.body.classList.contains('dark');
+  var dpr=window.devicePixelRatio||1,W=cv.offsetWidth,H=160;
+  cv.width=W*dpr;cv.height=H*dpr;
+  var ctx=cv.getContext('2d');ctx.scale(dpr,dpr);
+  var pad={t:8,r:8,b:28,l:28};
+  var cW=W-pad.l-pad.r,cH=H-pad.t-pad.b;
+  var maxCount=Math.max.apply(null,buckets.map(function(b){return b.count;}));
+  if(!maxCount)maxCount=1;
+  var gridCol=isDark?'rgba(255,255,255,.06)':'rgba(0,0,0,.06)';
+  var labelCol=isDark?'#6a7d98':'#888780';
+  var n=buckets.length;
+  var bw=Math.max(4,(cW/n)*0.65);
+  var gap=(cW/n);
+  // Grid lines
+  for(var g=0;g<=3;g++){
+    var gy=pad.t+cH-cH*g/3;
+    ctx.strokeStyle=gridCol;ctx.lineWidth=1;
+    ctx.beginPath();ctx.moveTo(pad.l,gy);ctx.lineTo(W-pad.r,gy);ctx.stroke();
+    ctx.fillStyle=labelCol;ctx.font='8px DM Mono,monospace';ctx.textAlign='right';
+    ctx.fillText(Math.round(maxCount*g/3),pad.l-3,gy+3);
+  }
+  // Bars
+  buckets.forEach(function(b,i){
+    var x=pad.l+gap*i+gap/2-bw/2;
+    var barH=b.count?cH*(b.count/maxCount):0;
+    var y=pad.t+cH-barH;
+    ctx.fillStyle=b.r>0?'rgba(0,184,122,.75)':b.r===0?'rgba(224,140,0,.75)':'rgba(230,48,80,.75)';
+    ctx.beginPath();
+    var radius=Math.min(4,bw/2);
+    if(barH>0){
+      ctx.moveTo(x+radius,y);ctx.lineTo(x+bw-radius,y);
+      ctx.quadraticCurveTo(x+bw,y,x+bw,y+radius);
+      ctx.lineTo(x+bw,y+barH);ctx.lineTo(x,y+barH);
+      ctx.lineTo(x,y+radius);ctx.quadraticCurveTo(x,y,x+radius,y);
+      ctx.closePath();ctx.fill();
+    }
+    // Count label on bar
+    if(b.count>0){
+      ctx.fillStyle=isDark?'#c0cce0':'#1a2233';
+      ctx.font='bold 9px DM Mono,monospace';ctx.textAlign='center';
+      ctx.fillText(b.count,x+bw/2,y-3);
+    }
+    // X label
+    ctx.fillStyle=labelCol;ctx.font='8px DM Mono,monospace';ctx.textAlign='center';
+    ctx.fillText((b.r>0?'+':'')+b.r+'R',x+bw/2,H-8);
+  });
+}
+
+function renderRDistribution(trs){
+  var tradesWithR=trs.filter(function(t){return calcR(t)!==null;});
+  if(!tradesWithR.length)return'<div style="color:var(--dim);font-size:11px;text-align:center;padding:30px">Sin trades con SL registrado</div>';
+  var avgR=tradesWithR.reduce(function(s,t){return s+calcR(t);},0)/tradesWithR.length;
+  var minR=Math.floor(Math.min.apply(null,tradesWithR.map(function(t){return calcR(t);})));
+  var maxR=Math.ceil(Math.max.apply(null,tradesWithR.map(function(t){return calcR(t);})));
+  minR=Math.min(minR,-1);maxR=Math.max(maxR,3);
+  var buckets=[];
+  for(var i=minR;i<=maxR;i++){
+    var cnt=tradesWithR.filter(function(t){var r=calcR(t);return r>=i-0.5&&r<i+0.5;}).length;
+    buckets.push({r:i,count:cnt});
+  }
+  var canvasId='rDistCanvas';
+  setTimeout(function(){drawRDistribution(buckets,canvasId);},80);
+  return'<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">'    +'<div style="display:flex;gap:14px">'    +'<span style="font-size:9px;color:var(--dim)"><span style="color:var(--green)">\u25CF</span> Winner</span>'    +'<span style="font-size:9px;color:var(--dim)"><span style="color:var(--amber)">\u25CF</span> BE</span>'    +'<span style="font-size:9px;color:var(--dim)"><span style="color:var(--red)">\u25CF</span> Loser</span>'    +'</div>'    +'<span style="font-size:11px;color:var(--mid)">Avg: <b style="color:'+(avgR>=0?'var(--green)':'var(--red)')+'">'+fmtR(Math.round(avgR*100)/100)+'</b> &middot; '+tradesWithR.length+' trades</span>'    +'</div>'    +'<canvas id="'+canvasId+'" height="160" style="width:100%;display:block"></canvas>';
+}
 
 function renderLog(){
   const allTrs=currentTrades();
@@ -1315,7 +1384,8 @@ function renderLog(){
     s+='</div>';
     return s;
   })();
-  const rows=trs.map(function(t){
+  var sortedTrs=[...trs].sort(function(a,b){var av,bv;if(logSort.col==='date'){av=new Date(a.date);bv=new Date(b.date);}else if(logSort.col==='pnl'){av=a.pnlNet;bv=b.pnlNet;}else if(logSort.col==='r'){av=calcR(a)!==null?calcR(a):-999;bv=calcR(b)!==null?calcR(b):-999;}else if(logSort.col==='dur'){av=a.durationMin||0;bv=b.durationMin||0;}else{av=new Date(a.date);bv=new Date(b.date);}return logSort.asc?(av>bv?1:-1):(av<bv?1:-1);});
+  const rows=sortedTrs.map(function(t){
     const d=new Date(t.date);
     const dt=(d.getMonth()+1)+'/'+d.getDate()+' '+d.getHours()+':'+(d.getMinutes()<10?'0':'')+d.getMinutes();
     const note=(function(){
@@ -1366,8 +1436,7 @@ function renderLog(){
     +'<div class="card"><div class="card-head"><div class="card-title">Trades</div><span class="badge">'+trs.length+' trades</span></div>'
     +'<div class="tbl-wrap"><table><thead><tr>'
     +'<th style="width:28px"><label class="chk-wrap"><input type="checkbox" id="chk-all" onchange="toggleSelectAll(this)"><span class="chk-box"><svg class="chk-mark" viewBox="0 0 10 10"><polyline points="1.5,5 4,7.5 8.5,2.5"/></svg></span></label></th>'
-    +'<th>FECHA</th><th>INST.</th><th>DIR</th><th>QTY</th><th>ENTRY</th><th>EXIT</th>'
-    +'<th>P&L</th><th style="color:var(--amber)">R</th><th>DUR.</th><th>SETUP</th><th>KEY LVL</th><th>CRT</th><th>NOTA</th><th>CHARTS</th><th></th>'
+        +(function(){var sc='cursor:pointer;user-select:none;';var ar=function(c){return logSort.col===c?(logSort.asc?' ↑':' ↓'):' ↕';};return '<th style="'+sc+'" onclick="setLogSort(\'date\')">FECHA'+ar('date')+'</th>'+'<th>INST.</th><th>DIR</th><th>QTY</th><th>ENTRY</th><th>EXIT</th>'+'<th style="'+sc+'" onclick="setLogSort(\'pnl\')">P&L'+ar('pnl')+'</th>'+'<th style="color:var(--amber);'+sc+'" onclick="setLogSort(\'r\')">R'+ar('r')+'</th>'+'<th style="'+sc+'" onclick="setLogSort(\'dur\')">DUR.'+ar('dur')+'</th>'+'<th>SETUP</th><th>KEY LVL</th><th>CRT</th><th>NOTA</th><th>CHARTS</th><th></th>';})()
     +'</tr></thead><tbody>'+rows+'</tbody></table></div></div>';
 }
 
@@ -1849,6 +1918,20 @@ function drawCharts(){
   drawEquity(monthTrsChart);
   drawMAE(trs);
   drawStreak(trs);
+  // R Distribution — rebuild buckets from current filtered trades
+  (function(){
+    var tradesWithR=monthTrsChart.filter(function(t){return calcR(t)!==null;});
+    if(!tradesWithR.length)return;
+    var minR=Math.floor(Math.min.apply(null,tradesWithR.map(function(t){return calcR(t);})));
+    var maxR=Math.ceil(Math.max.apply(null,tradesWithR.map(function(t){return calcR(t);})));
+    minR=Math.min(minR,-1);maxR=Math.max(maxR,3);
+    var buckets=[];
+    for(var i=minR;i<=maxR;i++){
+      var cnt=tradesWithR.filter(function(t){var r=calcR(t);return r>=i-0.5&&r<i+0.5;}).length;
+      buckets.push({r:i,count:cnt});
+    }
+    drawRDistribution(buckets,'rDistCanvas');
+  })();
 }
 function drawEquity(trs){
   var cv=document.getElementById('eqCanvas');if(!cv)return;
