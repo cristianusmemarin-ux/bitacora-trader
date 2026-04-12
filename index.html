@@ -1483,7 +1483,7 @@ function renderForm(){
     +'<label>Precio de salida real</label>'
     +'<input type="number" id="f-custom-exit" step="0.00001" placeholder="Precio exacto de cierre" value="'+(plannedOutcome==='custom'&&e?v('exitPrice',''):'')+'" oninput="updatePlannedPreview()" style="max-width:200px">'
     +'</div>'
-    +'<div style="font-size:11px;font-weight:600" id="planned-outcome-label" style="color:var(--dim)">'+(plannedOutcome?{sl:'\u1F534 Stop Loss',tp:'\u1F7E2 Take Profit',be:'\u1F7E1 Breakeven',custom:'\u1F3AF Precio custom'}[plannedOutcome]:'Sin resultado a\u00FAn')+'</div>'
+    +'<div style="font-size:11px;font-weight:600" id="planned-outcome-label" style="color:var(--dim)">'+(plannedOutcome?{sl:'\u1F534 Stop Loss',tp:'\u1F7E2 Take Profit',be:'\u1F7E1 Breakeven',custom:'\u1F3AF Precio custom'}[plannedOutcome]:'<span style="display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:6px;background:rgba(148,163,184,.12);border:1px solid var(--border2);font-size:11px;font-weight:600;letter-spacing:.06em;color:var(--mid)"><span style="width:6px;height:6px;border-radius:50%;background:var(--mid);display:inline-block;animation:pulse 1.8s ease-in-out infinite"></span>EN CURSO</span>')+'</div>'
     +'</div>'
     // Exit hidden
     +'<input type="hidden" id="f-exit" value="'+v('exitPrice','')+'">'
@@ -1665,8 +1665,17 @@ function updatePlannedPreview(){
   const badgeEl=document.getElementById('planned-outcome-label');
   if(badgeEl){
     const labels={sl:'\u1F534 Stop Loss',tp:'\u1F7E2 Take Profit',be:'\u1F7E1 Breakeven',custom:'\u1F3AF Precio custom'};
-    badgeEl.textContent=plannedOutcome?labels[plannedOutcome]:'Sin resultado a\u00FAn';
-    badgeEl.style.color=plannedOutcome?{sl:'var(--red)',tp:'var(--green)',be:'var(--amber)',custom:'var(--blue)'}[plannedOutcome]:'var(--dim)';
+    if(plannedOutcome){
+      badgeEl.innerHTML=labels[plannedOutcome];
+      badgeEl.style.cssText='';
+      var cols={sl:'var(--red)',tp:'var(--green)',be:'var(--amber)',custom:'var(--blue)'};
+      badgeEl.style.color=cols[plannedOutcome];
+      badgeEl.style.fontWeight='600';
+      badgeEl.style.fontSize='11px';
+    } else {
+      badgeEl.innerHTML='<span style="display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:6px;background:rgba(148,163,184,.12);border:1px solid var(--border2);font-size:11px;font-weight:600;letter-spacing:.06em;color:var(--mid)"><span style="width:6px;height:6px;border-radius:50%;background:var(--mid);display:inline-block;animation:pulse 1.8s ease-in-out infinite"></span>EN CURSO</span>';
+      badgeEl.style.cssText='';
+    }
   }
 }
 function setDir(d){currentDir=d;['Long','Short'].forEach(x=>{const btn=document.getElementById('btn-'+x.toLowerCase());if(!btn)return;const active=d===x,col=x==='Long'?'var(--green)':'var(--red)',dim=x==='Long'?'var(--green-dim)':'var(--red-dim)';btn.style.border='1px solid '+(active?col:'var(--border2)');btn.style.background=active?dim:'none';btn.style.color=active?col:'var(--mid)';});updatePnL();}
