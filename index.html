@@ -1247,13 +1247,14 @@ function drawRDistribution(buckets,canvasId){
   var n=buckets.length;
   var bw=Math.max(4,(cW/n)*0.65);
   var gap=(cW/n);
-  // Grid lines
-  for(var g=0;g<=3;g++){
-    var gy=pad.t+cH-cH*g/3;
+  // Grid lines — one per integer from 0 to maxCount
+  var yMax=Math.max(maxCount,2);
+  for(var g=0;g<=yMax;g++){
+    var gy=pad.t+cH-cH*(g/yMax);
     ctx.strokeStyle=gridCol;ctx.lineWidth=1;
     ctx.beginPath();ctx.moveTo(pad.l,gy);ctx.lineTo(W-pad.r,gy);ctx.stroke();
     ctx.fillStyle=labelCol;ctx.font='8px DM Mono,monospace';ctx.textAlign='right';
-    ctx.fillText(Math.round(maxCount*g/3),pad.l-3,gy+3);
+    ctx.fillText(g,pad.l-3,gy+3);
   }
   // Bars
   buckets.forEach(function(b,i){
