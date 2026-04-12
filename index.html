@@ -1534,11 +1534,11 @@ function renderForm(){
     +'<div><label id="comm-label-p">'+commLabel+'</label><input type="number" id="f-comm-p" step="0.01" value="'+(e?(v('commission',defComm)/(v('qty',1)*2)).toFixed(2):defComm)+'" oninput="updatePlannedPreview()"></div>'
     +'<div><label>Duraci\xF3n (min)</label><input type="number" id="f-dur-p" value="'+v('durationMin',0)+'"></div>'
     +'<div style="grid-column:span 2;display:flex;gap:8px;align-items:center;flex-wrap:wrap">'
-    +'<div style="flex:1;min-width:0;padding:8px 12px;background:var(--bg);border:1px solid var(--border);border-radius:8px">'
+    +'<div style="flex:1;min-width:0;padding:8px 12px;background:var(--bg);border-radius:8px">'
     +'<div style="font-size:9px;color:var(--mid);margin-bottom:2px">R:R Planificado</div>'
     +'<div id="planned-rr" style="font-size:15px;font-weight:700;color:var(--blue)">\u2014</div>'
     +'</div>'
-    +'<div style="flex:1;min-width:0;padding:8px 12px;background:var(--bg);border:1px solid var(--border);border-radius:8px">'
+    +'<div style="flex:1;min-width:0;padding:8px 12px;background:var(--bg);border-radius:8px">'
     +'<div style="font-size:9px;color:var(--mid);margin-bottom:2px">Riesgo m\xE1x.</div>'
     +'<div id="planned-risk" style="font-size:15px;font-weight:700">\u2014</div>'
     +'</div>'
@@ -1547,18 +1547,19 @@ function renderForm(){
     // Resultado del trade
     +'<div style="margin-bottom:14px">'
     +'<div style="font-size:10px;color:var(--mid);letter-spacing:.08em;text-transform:uppercase;margin-bottom:8px">\u00BFC\u00F3mo sali\u00F3 el trade?</div>'
-    +'<div style="display:flex;gap:6px;margin-bottom:8px">'
+    +'<div style="display:flex;gap:6px;align-items:center;margin-bottom:8px">'
     +'<button id="po-sl" onclick="setPlannedOutcome(\'sl\')" style="flex:1;justify-content:center;padding:9px 18px;border-radius:8px;font-size:12px;font-weight:700;font-family:var(--font);cursor:pointer;transition:all .15s;display:inline-flex;align-items:center;gap:6px;border:2px solid var(--red);background:'+(plannedOutcome==='sl'?'var(--red)':'none')+';color:'+(plannedOutcome==='sl'?'#000':'var(--red)')+'"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 18 13.5 8.5 8.5 13.5 1 6"/><polyline points="17 18 23 18 23 12"/></svg>SL</button>'
     +'<button id="po-tp" onclick="setPlannedOutcome(\'tp\')" style="flex:1;justify-content:center;padding:9px 18px;border-radius:8px;font-size:12px;font-weight:700;font-family:var(--font);cursor:pointer;transition:all .15s;display:inline-flex;align-items:center;gap:6px;border:2px solid var(--green);background:'+(plannedOutcome==='tp'?'var(--green)':'none')+';color:'+(plannedOutcome==='tp'?'#000':'var(--green)')+'"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>TP</button>'
     +'<button id="po-be" onclick="setPlannedOutcome(\'be\')" style="flex:1;justify-content:center;padding:9px 18px;border-radius:8px;font-size:12px;font-weight:700;font-family:var(--font);cursor:pointer;transition:all .15s;display:inline-flex;align-items:center;gap:6px;border:2px solid var(--amber);background:'+(plannedOutcome==='be'?'var(--amber)':'none')+';color:'+(plannedOutcome==='be'?'#000':'var(--amber)')+'"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/></svg>BE</button>'
     +'<button id="po-custom" onclick="setPlannedOutcome(\'custom\')" style="flex:1;justify-content:center;padding:9px 18px;border-radius:8px;font-size:12px;font-weight:700;font-family:var(--font);cursor:pointer;transition:all .15s;display:inline-flex;align-items:center;gap:6px;border:2px solid var(--blue);background:'+(plannedOutcome==='custom'?'var(--blue)':'none')+';color:'+(plannedOutcome==='custom'?'#000':'var(--blue)')+'"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>Otro precio</button>'
+    +'<div id="planned-outcome-label" style="flex-shrink:0">'+(plannedOutcome?'':'<span style="display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:6px;background:rgba(148,163,184,.12);border:1px solid var(--border2);font-size:11px;font-weight:600;letter-spacing:.06em;color:var(--mid)"><span style="width:6px;height:6px;border-radius:50%;background:var(--mid);display:inline-block;animation:pulse 1.8s ease-in-out infinite"></span>EN CURSO</span>')+'</div>'
     +'</div>'
     // Custom exit input
     +'<div id="po-custom-box" style="display:'+(plannedOutcome==='custom'?'block':'none')+';margin-bottom:6px">'
     +'<label>Precio de salida real</label>'
     +'<input type="number" id="f-custom-exit" step="0.00001" placeholder="Precio exacto de cierre" value="'+(plannedOutcome==='custom'&&e?v('exitPrice',''):'')+'" oninput="updatePlannedPreview()" style="max-width:200px">'
     +'</div>'
-    +'<div style="font-size:11px;font-weight:600" id="planned-outcome-label" style="color:var(--dim)">'+(plannedOutcome?{sl:'\u1F534 Stop Loss',tp:'\u1F7E2 Take Profit',be:'\u1F7E1 Breakeven',custom:'\u1F3AF Precio custom'}[plannedOutcome]:'<span style="display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:6px;background:rgba(148,163,184,.12);border:1px solid var(--border2);font-size:11px;font-weight:600;letter-spacing:.06em;color:var(--mid)"><span style="width:6px;height:6px;border-radius:50%;background:var(--mid);display:inline-block;animation:pulse 1.8s ease-in-out infinite"></span>EN CURSO</span>')+'</div>'
+
     +'</div>'
     // Exit hidden
     +'<input type="hidden" id="f-exit" value="'+v('exitPrice','')+'">'
@@ -1724,9 +1725,9 @@ function updatePlannedPreview(){
     const fx=isFx(inst),fxFut=isFxFuture(inst);
     const totalComm=fx&&!fxFut?comm:qty*2*comm;
     const riskAmt=Math.abs(riskResult.gross)+totalComm;
-    riskEl.textContent='-$'+riskAmt.toFixed(2);
+    riskEl.textContent='$'+riskAmt.toFixed(2);
     riskEl.style.color='var(--red)';
-  } else if(riskEl){riskEl.textContent='\u2014';}
+  } else if(riskEl){riskEl.textContent='\u2014';riskEl.style.color='';}
 
   // Calculate TP and SL scenarios simultaneously
   const fx2=isFx(inst),fxFut2=isFxFuture(inst);
@@ -1738,8 +1739,8 @@ function updatePlannedPreview(){
     const rTP=calcResult(inst,entry,tp,qty,currentDir);
     if(rTP){
       const netTP=rTP.gross-totalComm2;
-      set2('p-tp-net',(netTP>=0?'+':'')+fmt(netTP));
-      set2('p-tp-gross',fmt(rTP.gross));
+      set2('p-tp-net',(netTP>=0?'+':'-')+'$'+Math.abs(netTP).toFixed(0));
+      set2('p-tp-gross',(rTP.gross>=0?'+':'-')+'$'+Math.abs(rTP.gross).toFixed(0));
       set2('p-tp-comm','-$'+totalComm2.toFixed(2));
       showPreview=true;
     }
@@ -1750,8 +1751,8 @@ function updatePlannedPreview(){
     const rSL=calcResult(inst,entry,sl,qty,currentDir);
     if(rSL){
       const netSL=rSL.gross-totalComm2;
-      set2('p-sl-net',(netSL>=0?'+':'')+fmt(netSL));
-      set2('p-sl-gross',fmt(rSL.gross));
+      set2('p-sl-net',(netSL>=0?'+':'-')+'$'+Math.abs(netSL).toFixed(0));
+      set2('p-sl-gross',(rSL.gross>=0?'+':'-')+'$'+Math.abs(rSL.gross).toFixed(0));
       set2('p-sl-comm','-$'+totalComm2.toFixed(2));
       showPreview=true;
     }
@@ -1783,12 +1784,8 @@ function updatePlannedPreview(){
   if(badgeEl){
     const labels={sl:'\u1F534 Stop Loss',tp:'\u1F7E2 Take Profit',be:'\u1F7E1 Breakeven',custom:'\u1F3AF Precio custom'};
     if(plannedOutcome){
-      badgeEl.innerHTML=labels[plannedOutcome];
+      badgeEl.innerHTML='';
       badgeEl.style.cssText='';
-      var cols={sl:'var(--red)',tp:'var(--green)',be:'var(--amber)',custom:'var(--blue)'};
-      badgeEl.style.color=cols[plannedOutcome];
-      badgeEl.style.fontWeight='600';
-      badgeEl.style.fontSize='11px';
     } else {
       badgeEl.innerHTML='<span style="display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:6px;background:rgba(148,163,184,.12);border:1px solid var(--border2);font-size:11px;font-weight:600;letter-spacing:.06em;color:var(--mid)"><span style="width:6px;height:6px;border-radius:50%;background:var(--mid);display:inline-block;animation:pulse 1.8s ease-in-out infinite"></span>EN CURSO</span>';
       badgeEl.style.cssText='';
