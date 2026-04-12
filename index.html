@@ -533,7 +533,6 @@ let trades=[],currentView='dashboard',editingTrade=null;
 let crtData={},crtActiveInst=INSTRUMENTS[0],formCRTStates={};
 let filterYearMonths=null,filterMonthCal=new Date().getMonth(),filterYearCal=null;
 var logFilter={inst:'',outcome:'',tag:'',minR:'',dir:''};
-var logFilter={inst:'',outcome:'',tag:'',minR:'',dir:''};
 let pendingImageFile=null,pendingImageFile2=null;
 
 // IMAGE HELPERS
@@ -1319,7 +1318,11 @@ function renderLog(){
   const rows=trs.map(function(t){
     const d=new Date(t.date);
     const dt=(d.getMonth()+1)+'/'+d.getDate()+' '+d.getHours()+':'+(d.getMinutes()<10?'0':'')+d.getMinutes();
-    const note=(t.note||'').replace(/\[CRT:[^\]]+\]/g,'').trim();
+    const note=(function(){
+      var raw=(t.note||'').replace(/\[CRT:[^\]]+\]/g,'').trim();
+      try{if(raw.startsWith('{')){var p=JSON.parse(raw);var parts=[];if(p.why)parts.push(p.why);if(p.what)parts.push(p.what);if(p.improve)parts.push(p.improve);return parts.join(' · ');}}catch(e){}
+      return raw;
+    })();
     const imgUrl =t.imagePath ?getImagePublicUrl(t.imagePath) :null;
     const imgUrl2=t.imagePath2?getImagePublicUrl(t.imagePath2):null;
     const imgs='<td style="white-space:nowrap">'
