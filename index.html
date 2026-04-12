@@ -507,6 +507,7 @@ document.addEventListener('click',function(e){
 });
 function setMode(mode){
   currentMode=mode;
+  logFilter={inst:'',outcome:'',tag:'',minR:'',dir:''};
   var liveBtn=document.getElementById('modeTabLive');
   var btBtn=document.getElementById('modeTabBT');
   if(liveBtn){
@@ -531,6 +532,8 @@ function currentTrades(){return trades.filter(t=>t.mode===(currentMode==='live'?
 let trades=[],currentView='dashboard',editingTrade=null;
 let crtData={},crtActiveInst=INSTRUMENTS[0],formCRTStates={};
 let filterYearMonths=null,filterMonthCal=new Date().getMonth(),filterYearCal=null;
+var logFilter={inst:'',outcome:'',tag:'',minR:'',dir:''};
+var logFilter={inst:'',outcome:'',tag:'',minR:'',dir:''};
 let pendingImageFile=null,pendingImageFile2=null;
 
 // IMAGE HELPERS
@@ -1201,11 +1204,118 @@ function fmtR(r){
   return sign+r.toFixed(2)+'R';
 }
 
+function applyLogFilters(trs){
+  return trs.filter(function(t){
+    if(logFilter.inst&&t.instrument!==logFilter.inst)return false;
+    if(logFilter.outcome){
+      var be=isBE(t);
+      if(logFilter.outcome==='win'&&(be||t.pnlNet<=0))return false;
+      if(logFilter.outcome==='loss'&&(be||t.pnlNet>=0))return false;
+      if(logFilter.outcome==='be'&&!be)return false;
+    }
+    if(logFilter.tag){
+      var raw=(t.note||'').replace(/\[CRT:[^\]]+\]/g,'').trim();
+      var tags=[];
+      try{if(raw.startsWith('{')){var p=JSON.parse(raw);tags=p.tags||[];}}catch(e){}
+      if(tags.indexOf(logFilter.tag)===-1)return false;
+    }
+    if(logFilter.minR&&logFilter.minR!==''){
+      var r=calcR(t);
+      var minRVal=parseFloat(logFilter.minR);
+      if(isNaN(minRVal)||r===null||r<minRVal)return false;
+    }
+    if(logFilter.dir&&t.direction!==logFilter.dir)return false;
+    return true;
+  });
+}
+function setLogFilter(key,val){logFilter[key]=val;render();}
+function clearLogFilters(){logFilter={inst:'',outcome:'',tag:'',minR:'',dir:''};render();}
+
 function renderLog(){
-  const trs=currentTrades();
+  const allTrs=currentTrades();
+  const trs=applyLogFilters(allTrs);
   const modeL=modeLabel();
-  if(!trs.length)return'<div class="empty"><div style="margin-bottom:10px">'+modeL+'</div><div class="empty-icon">&#x1F4CB;</div><div class="empty-title">Sin trades</div><div class="empty-sub">Usa <b style="color:'+modeAccent()+'">+ Nuevo</b></div></div>';
+  if(!allTrs.length)return'<div class="empty"><div style="margin-bottom:10px">'+modeL+'</div><div class="empty-icon">&#x1F4CB;</div><div class="empty-title">Sin trades</div><div class="empty-sub">Usa <b style="color:'+modeAccent()+'">+ Nuevo</b></div></div>';
   logSelectedIds.clear();
+
+  // Build filter bar
+  var instruments=[...new Set(allTrs.map(function(t){return t.instrument;}))].sort();
+  var allTags=[];
+  allTrs.forEach(function(t){
+    var raw=(t.note||'').replace(/\[CRT:[^\]]+\]/g,'').trim();
+    try{if(raw.startsWith('{')){var p=JSON.parse(raw);(p.tags||[]).forEach(function(tg){if(allTags.indexOf(tg)===-1)allTags.push(tg);});}}catch(e){}
+  });
+
+  var hasFilter=logFilter.inst||logFilter.outcome||logFilter.tag||logFilter.minR||logFilter.dir;
+
+  // Selector style helper
+  function selStyle(active){return 'height:30px;font-size:11px;padding:0 8px;border:1px solid '+(active?'var(--green)':'var(--border2)')+';border-radius:8px;background:'+(active?'var(--green-dim)':'var(--surface)')+';color:'+(active?'var(--green)':'var(--text)')+';outline:none;font-family:var(--font);cursor:pointer';}
+  function chipStyle(active,color){
+    var cols={green:['var(--green)','var(--green-dim)'],red:['var(--red)','var(--red-dim)'],amber:['var(--amber)','rgba(224,140,0,.1)'],blue:['var(--blue)','rgba(45,125,210,.1)']};
+    var c=cols[color]||cols.blue;
+    return 'display:inline-flex;align-items:center;height:26px;padding:0 10px;border-radius:20px;font-size:11px;cursor:pointer;border:1px solid '+(active?c[0]:'var(--border2)')+';color:'+(active?c[0]:'var(--mid)')+';background:'+(active?c[1]:'none')+';font-family:var(--font);transition:all .15s';
+  }
+
+  // Filtered P&L and WR summary
+  var filtPnl=trs.reduce(function(s,t){return s+t.pnlNet;},0);
+  var filtWins=trs.filter(function(t){return !isBE(t)&&t.pnlNet>0;}).length;
+  var filtNonBE=trs.filter(function(t){return !isBE(t);}).length;
+  var filtWR=filtNonBE>0?(filtWins/filtNonBE*100).toFixed(0)+'%':'—';
+
+  var filterBar=(function(){
+    var s='<div style="background:var(--card);border:1px solid var(--border);border-radius:14px;padding:10px 14px;margin-bottom:10px">';
+    // Row 1
+    s+='<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:8px">';
+    var iSel='height:30px;font-size:11px;padding:0 8px;border-radius:8px;outline:none;font-family:var(--font);cursor:pointer;border:1px solid '+(logFilter.inst?'var(--green)':'var(--border2)')+';background:'+(logFilter.inst?'var(--green-dim)':'var(--surface)')+';color:'+(logFilter.inst?'var(--green)':'var(--text)');
+    s+='<select style="'+iSel+'" onchange="setLogFilter(\'inst\',this.value)">';
+    s+='<option value="">Todos los instrumentos</option>';
+    instruments.forEach(function(i){s+='<option value="'+i+'"'+(logFilter.inst===i?' selected':'')+'>'+i+'</option>';});
+    s+='</select>';
+    var oSel='height:30px;font-size:11px;padding:0 8px;border-radius:8px;outline:none;font-family:var(--font);cursor:pointer;border:1px solid '+(logFilter.outcome?'var(--green)':'var(--border2)')+';background:'+(logFilter.outcome?'var(--green-dim)':'var(--surface)')+';color:'+(logFilter.outcome?'var(--green)':'var(--text)');
+    s+='<select style="'+oSel+'" onchange="setLogFilter(\'outcome\',this.value)">';
+    s+='<option value="">W / L / BE</option>';
+    s+='<option value="win"'+(logFilter.outcome==='win'?' selected':'')+'>Solo ganadores</option>';
+    s+='<option value="loss"'+(logFilter.outcome==='loss'?' selected':'')+'>Solo perdedores</option>';
+    s+='<option value="be"'+(logFilter.outcome==='be'?' selected':'')+'>Solo BE</option>';
+    s+='</select>';
+    if(allTags.length){
+      var tSel='height:30px;font-size:11px;padding:0 8px;border-radius:8px;outline:none;font-family:var(--font);cursor:pointer;border:1px solid '+(logFilter.tag?'var(--green)':'var(--border2)')+';background:'+(logFilter.tag?'var(--green-dim)':'var(--surface)')+';color:'+(logFilter.tag?'var(--green)':'var(--text)');
+      s+='<select style="'+tSel+'" onchange="setLogFilter(\'tag\',this.value)">';
+      s+='<option value="">Todas las etiquetas</option>';
+      allTags.forEach(function(tg){s+='<option value="'+tg+'"'+(logFilter.tag===tg?' selected':'')+'>'+tg+'</option>';});
+      s+='</select>';
+    }
+    if(hasFilter)s+='<span onclick="clearLogFilters()" style="font-size:11px;color:var(--mid);cursor:pointer;padding:0 4px">Limpiar</span>';
+    s+='</div>';
+    // Row 2: chips
+    function chip(label,active,color,key,val){
+      var cols={green:'var(--green)',red:'var(--red)',amber:'var(--amber)',blue:'var(--blue)'};
+      var bgs={green:'var(--green-dim)',red:'var(--red-dim)',amber:'rgba(224,140,0,.1)',blue:'rgba(45,125,210,.1)'};
+      var c=cols[color]||cols.blue,b=bgs[color]||bgs.blue;
+      var st='display:inline-flex;align-items:center;height:26px;padding:0 10px;border-radius:20px;font-size:11px;cursor:pointer;font-family:var(--font);border:1px solid '+(active?c:'var(--border2)')+';color:'+(active?c:'var(--mid)')+';background:'+(active?b:'none');
+      var newVal=active?'':val;
+      return '<span style="'+st+'" onclick="setLogFilter(\''+key+'\',\''+newVal+'\')">'+label+'</span>';
+    }
+    s+='<div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">';
+    s+='<span style="font-size:10px;color:var(--dim);margin-right:2px">R:</span>';
+    s+=chip('Todos',!logFilter.minR,'blue','minR','');
+    s+=chip('≥ 1R',logFilter.minR==='1','blue','minR','1');
+    s+=chip('≥ 2R',logFilter.minR==='2','blue','minR','2');
+    s+=chip('≥ 3R',logFilter.minR==='3','blue','minR','3');
+    s+='<div style="width:1px;height:16px;background:var(--border);margin:0 4px"></div>';
+    s+='<span style="font-size:10px;color:var(--dim);margin-right:2px">Dir:</span>';
+    s+=chip('Todas',!logFilter.dir,'blue','dir','');
+    s+=chip('Long',logFilter.dir==='Long','green','dir','Long');
+    s+=chip('Short',logFilter.dir==='Short','red','dir','Short');
+    s+='</div>';
+    // Summary
+    s+='<div style="display:flex;align-items:center;justify-content:space-between;margin-top:8px;padding-top:8px;border-top:1px solid var(--border)">';
+    s+='<span style="font-size:11px;color:var(--mid)"><b style="color:var(--text)">'+trs.length+'</b> de '+allTrs.length+' trades'+(hasFilter?' &middot; filtros activos':'')+'</span>';
+    s+='<span style="font-size:11px;color:var(--mid)">P&L: <b style="color:'+(filtPnl>=0?'var(--green)':'var(--red)')+'">'+fmt(filtPnl)+'</b> &middot; WR: <b>'+filtWR+'</b></span>';
+    s+='</div>';
+    s+='</div>';
+    return s;
+  })();
   const rows=trs.map(function(t){
     const d=new Date(t.date);
     const dt=(d.getMonth()+1)+'/'+d.getDate()+' '+d.getHours()+':'+(d.getMinutes()<10?'0':'')+d.getMinutes();
@@ -1249,6 +1359,7 @@ function renderLog(){
     +'</div>';
   return '<div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">'+modeL+'</div>'
     +bulkBar
+    +filterBar
     +'<div class="card"><div class="card-head"><div class="card-title">Trades</div><span class="badge">'+trs.length+' trades</span></div>'
     +'<div class="tbl-wrap"><table><thead><tr>'
     +'<th style="width:28px"><label class="chk-wrap"><input type="checkbox" id="chk-all" onchange="toggleSelectAll(this)"><span class="chk-box"><svg class="chk-mark" viewBox="0 0 10 10"><polyline points="1.5,5 4,7.5 8.5,2.5"/></svg></span></label></th>'
