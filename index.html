@@ -1559,14 +1559,22 @@ function renderForm(){
     +'<input type="hidden" id="f-exit" value="'+v('exitPrice','')+'">'
     +'</div>'
     // PnL preview
-    +'<div class="pnl-preview" id="pnlPreview" style="'+(e?'':'display:none')+'">'
-    +'<div class="pnl-box"><div class="pnl-box-label" id="p-ticks-label">'+(fxFut||forex?'Pips':'Ticks')+'</div><div class="pnl-box-val" id="p-ticks">&#x2014;</div></div>'
-    +'<div class="pnl-box"><div class="pnl-box-label">P&amp;L Bruto</div><div class="pnl-box-val" id="p-gross">&#x2014;</div></div>'
-    +'<div class="pnl-box"><div class="pnl-box-label">Comisi\xF3n</div><div class="pnl-box-val" id="p-comm" style="color:var(--amber)">&#x2014;</div></div>'
-    +'<div class="pnl-box"><div class="pnl-box-label">P&amp;L Neto</div><div class="pnl-box-val" id="p-net">&#x2014;</div></div>'
-    +'<div class="pnl-box"><div class="pnl-box-label">P&amp;L Real (broker)</div>'
-    +'<input type="number" id="f-pnl-real" step="0.01" placeholder="Editar si difiere" style="font-size:12px;text-align:center;border:none;background:none;padding:2px;font-weight:700;color:var(--blue);width:100%" oninput="onPnlRealEdit()"></div>'
+    +'<div id="pnlPreview" style="display:none;margin-bottom:12px">'
+    +'<div style="display:grid;grid-template-columns:1fr 1px 1fr;gap:0;border:1px solid var(--border);border-radius:10px;overflow:hidden">'
+    +'<div style="padding:10px 14px;background:rgba(0,184,122,.05)">'
+    +'<div style="font-size:9px;color:var(--green);font-weight:700;letter-spacing:.06em;margin-bottom:6px">SI LLEGA AL TP</div>'
+    +'<div style="font-size:20px;font-weight:700;color:var(--green)" id="p-tp-net">&#x2014;</div>'
+    +'<div style="font-size:10px;color:var(--dim);margin-top:3px">Bruto <span id="p-tp-gross" style="color:var(--mid)">&#x2014;</span> &middot; Comis. <span id="p-tp-comm" style="color:var(--amber)">&#x2014;</span></div>'
     +'</div>'
+    +'<div style="background:var(--border)"></div>'
+    +'<div style="padding:10px 14px;background:rgba(230,48,80,.05)">'
+    +'<div style="font-size:9px;color:var(--red);font-weight:700;letter-spacing:.06em;margin-bottom:6px">SI LLEGA AL SL</div>'
+    +'<div style="font-size:20px;font-weight:700;color:var(--red)" id="p-sl-net">&#x2014;</div>'
+    +'<div style="font-size:10px;color:var(--dim);margin-top:3px">Bruto <span id="p-sl-gross" style="color:var(--mid)">&#x2014;</span> &middot; Comis. <span id="p-sl-comm" style="color:var(--amber)">&#x2014;</span></div>'
+    +'</div>'
+    +'</div>'
+    +'</div>'
+    +'<input type="number" id="f-pnl-real" style="display:none" step="0.01">'
     +'<div id="pip-val-info" style="display:none;font-size:10px;color:var(--blue);margin-bottom:12px;padding:8px 12px;background:rgba(45,125,210,.08);border-radius:6px;border-left:3px solid var(--blue)">Valor por pip: <b id="pip-val-display">&#x2014;</b></div>'
     // MAE / MFE
     +'<div class="form-grid-2">'
@@ -1715,7 +1723,40 @@ function updatePlannedPreview(){
     riskEl.style.color='var(--red)';
   } else if(riskEl){riskEl.textContent='\u2014';}
 
-  // Determine exit price based on outcome
+  // Calculate TP and SL scenarios simultaneously
+  const fx2=isFx(inst),fxFut2=isFxFuture(inst);
+  const totalComm2=fx2&&!fxFut2?comm:qty*2*comm;
+  const set2=(id,val)=>{const el=document.getElementById(id);if(el)el.textContent=val;};
+
+  var showPreview=false;
+  if(entry&&tp){
+    const rTP=calcResult(inst,entry,tp,qty,currentDir);
+    if(rTP){
+      const netTP=rTP.gross-totalComm2;
+      set2('p-tp-net',(netTP>=0?'+':'')+fmt(netTP));
+      set2('p-tp-gross',fmt(rTP.gross));
+      set2('p-tp-comm','-$'+totalComm2.toFixed(2));
+      showPreview=true;
+    }
+  } else {
+    set2('p-tp-net','—');set2('p-tp-gross','—');set2('p-tp-comm','—');
+  }
+  if(entry&&sl){
+    const rSL=calcResult(inst,entry,sl,qty,currentDir);
+    if(rSL){
+      const netSL=rSL.gross-totalComm2;
+      set2('p-sl-net',(netSL>=0?'+':'')+fmt(netSL));
+      set2('p-sl-gross',fmt(rSL.gross));
+      set2('p-sl-comm','-$'+totalComm2.toFixed(2));
+      showPreview=true;
+    }
+  } else {
+    set2('p-sl-net','—');set2('p-sl-gross','—');set2('p-sl-comm','—');
+  }
+  const prev=document.getElementById('pnlPreview');
+  if(prev)prev.style.display=showPreview?'block':'none';
+
+  // Determine exit price based on outcome selection (for submitForm)
   let exitPrice=null;
   if(plannedOutcome==='sl'&&sl) exitPrice=sl;
   else if(plannedOutcome==='tp'&&tp) exitPrice=tp;
@@ -1724,12 +1765,13 @@ function updatePlannedPreview(){
     const cp=numVal('f-custom-exit')||0;
     if(cp) exitPrice=cp;
   }
-
-  // Mirror exit to the simple exit field so submitForm works
   const exitFld=document.getElementById('f-exit');
   if(exitFld&&exitPrice) exitFld.value=exitPrice;
-
-  if(exitPrice) updatePnL();
+  const ri=document.getElementById('f-pnl-real');
+  if(ri&&!ri.dataset.edited&&exitPrice){
+    const rExit=calcResult(inst,entry,exitPrice,qty,currentDir);
+    if(rExit)ri.value=(rExit.gross-totalComm2).toFixed(2);
+  }
 
   // Show planned outcome badge
   const badgeEl=document.getElementById('planned-outcome-label');
